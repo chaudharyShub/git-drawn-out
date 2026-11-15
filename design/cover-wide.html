@@ -1,0 +1,45 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+html,body{margin:0;width:1000px;height:420px;overflow:hidden;background:#0F121A}
+body{font-family:"IBM Plex Sans",sans-serif;color:#E5E9F1;position:relative;
+  background:radial-gradient(760px 420px at 85% 15%, #FF5E9C22, transparent 60%),radial-gradient(600px 420px at 10% 115%, #5EA4FF1F, transparent 60%),#0F121A}
+.l{position:absolute;left:64px;top:52px;width:480px}
+.eb{font-family:"IBM Plex Mono",monospace;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:#98A1B6}
+h1{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:84px;line-height:.98;letter-spacing:-.04em;margin:16px 0 0}
+h1 span{color:#FF5E9C}
+p{font-size:20px;line-height:1.4;color:#98A1B6;margin:20px 0 0;max-width:32ch}
+.url{position:absolute;left:64px;bottom:44px;font-family:"IBM Plex Mono",monospace;font-size:17px;color:#7FB0FF}
+.card{position:absolute;right:56px;top:50px;width:380px;height:320px;background:#171B26;border:1px solid #2C3445;border-radius:20px}
+.card svg{width:380px;height:285px}
+.cmd{position:absolute;left:24px;bottom:18px;font-family:"IBM Plex Mono",monospace;font-size:16px;color:#98A1B6}
+.cmd b{color:#7FB0FF;font-weight:500}
+</style></head><body>
+<div class="l">
+  <div class="eb">A visual field guide</div>
+  <h1>Git,<br>drawn <span>out</span>.</h1>
+  <p>Commits, branches, HEAD and remotes, drawn as diagrams you can play with.</p>
+</div>
+<div class="url">git-drawn-out.vercel.app</div>
+<div class="card">
+<svg width="440" height="330" viewBox="0 0 440 330" font-family="IBM Plex Mono, monospace">
+  <!-- main line -->
+  <path d="M60 210 H340" stroke="#5EA4FF" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <!-- feature branch -->
+  <path d="M150 210 C185 210 185 120 225 120 H330" stroke="#A98BFF" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <g fill="#171B26" stroke="#E5E9F1" stroke-width="4">
+    <circle cx="60" cy="210" r="15"/><circle cx="150" cy="210" r="15"/><circle cx="245" cy="210" r="15"/><circle cx="340" cy="210" r="15"/>
+    <circle cx="245" cy="120" r="15"/><circle cx="330" cy="120" r="15"/>
+  </g>
+  <g font-size="16" font-weight="500">
+    <rect x="296" y="236" width="88" height="32" rx="16" fill="#5EA4FF"/><text x="340" y="257" text-anchor="middle" fill="#0F121A">main</text>
+    <rect x="276" y="62" width="108" height="32" rx="16" fill="#A98BFF"/><text x="330" y="83" text-anchor="middle" fill="#0F121A">feature</text>
+    <rect x="290" y="280" width="100" height="32" rx="16" fill="#FF5E9C"/><text x="340" y="301" text-anchor="middle" fill="#0F121A">HEAD</text>
+    <path d="M340 280 V270" stroke="#FF5E9C" stroke-width="3"/>
+    <rect x="18" y="150" width="96" height="30" rx="15" fill="none" stroke="#4FCB76" stroke-width="2.5"/><text x="66" y="170" text-anchor="middle" fill="#4FCB76" font-size="14">origin</text>
+  </g>
+</svg>
+<div class="cmd"><b>$</b> git log --graph --all</div>
+</div>
+</body></html>
