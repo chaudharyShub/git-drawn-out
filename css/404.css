@@ -1,0 +1,13 @@
+/* Git, Drawn Out — 404 page. Tokens live in tokens.css. */
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--ink);font-family:var(--f-body);line-height:1.6;padding:32px 16px}
+main{max-width:560px;width:100%}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(40px,9vw,64px);letter-spacing:-.035em;line-height:1.05;margin:10px 0 0}
+h1 span{color:var(--head)}
+p{color:var(--muted);margin:14px 0 0}
+svg{display:block;width:100%;height:auto;margin-top:28px}
+.term{margin-top:24px;background:var(--term-bg);color:var(--term-fg);border-radius:12px;padding:14px 16px;font-family:var(--f-mono);font-size:14px;overflow-x:auto}
+.term .p{color:var(--term-prompt)} .term .d{color:var(--term-dim)}
+.btn{display:inline-block;margin-top:24px;background:var(--head);color:var(--nodefill);text-decoration:none;font-weight:500;padding:10px 18px;border-radius:999px}
+.btn:hover{filter:brightness(1.08)}
+.btn:focus-visible{outline:3px solid var(--branch);outline-offset:3px}
