@@ -182,16 +182,19 @@ nav.toc a:hover{border-color:var(--head)}
 .topnav .theme-btn{margin-left:auto;width:30px;height:30px}
 
 /* sticky section nav (appears after the hero scrolls away) */
-.topnav{position:fixed;inset:0 0 auto 0;z-index:20;background:color-mix(in srgb, var(--bg) 88%, transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  border-bottom:1px solid var(--line);transform:translateY(-100%);visibility:hidden;transition:transform .2s ease, visibility .2s}
+.topnav{position:fixed;inset:0 0 auto 0;z-index:20;background:color-mix(in srgb, var(--surface) 94%, transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);box-shadow:0 6px 20px rgba(21,26,40,.10);transform:translateY(-100%);visibility:hidden;transition:transform .2s ease, visibility .2s}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .topnav{box-shadow:0 6px 24px rgba(0,0,0,.55)}}
+:root[data-theme="dark"] .topnav{box-shadow:0 6px 24px rgba(0,0,0,.55)}
 .topnav.show{transform:none;visibility:visible}
 .topnav-in{max-width:1080px;margin:0 auto;display:flex;gap:4px;align-items:center;overflow-x:auto;scrollbar-width:none;
-  padding:8px max(16px, env(safe-area-inset-left, 0px))}
+  padding:10px max(16px, env(safe-area-inset-left, 0px))}
 .topnav-in::-webkit-scrollbar{display:none}
-.topnav a{font:500 13px var(--f-mono);color:var(--muted);text-decoration:none;padding:4px 9px;border-radius:999px;white-space:nowrap}
-.topnav a:hover{color:var(--ink)}
-.topnav a[aria-current]{color:var(--ink);background:var(--surface2)}
-.topnav a.tn-home{font:800 15px var(--f-display);color:var(--ink);margin-right:8px;padding-left:0}
+.topnav a{font:500 13.5px var(--f-mono);color:var(--ink);opacity:.82;text-decoration:none;padding:5px 10px;border-radius:999px;white-space:nowrap}
+.topnav a:hover{opacity:1;background:var(--surface2)}
+.topnav a[aria-current]{opacity:1;color:var(--bg);background:var(--ink)}
+.topnav a.tn-home{font:800 16px var(--f-display);opacity:1;margin-right:10px;padding-left:0}
+.topnav a.tn-home:hover{background:none}
 .topnav a.tn-home span{color:var(--head)}
 
 /* playground additions */
