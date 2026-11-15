@@ -82,7 +82,7 @@ Also:
 
 - [CloudPrep](https://aws-cloud-prepare.vercel.app/): practice exams for three AWS certifications
 - [Frontend Interview Prep](https://frontend-interview-prepare.vercel.app/): frontend interview questions with answers
-- [All projects](https://shubhamworks.vercel.app/)
+- [All projects](https://shubhamworks.vercel.app/projects)
 
 ## License
 
