@@ -164,7 +164,15 @@ nav.toc a:hover{border-color:var(--head)}
 .sw.e-read{background:var(--muted)}
 footer{margin-top:56px;padding-top:24px;border-top:1px solid var(--line);color:var(--muted);font-size:14.5px}
 footer p + p{margin-top:8px}
-footer .credit{margin-top:20px;font-size:13.5px}
+footer .source{margin-top:20px;font-size:13.5px}
+/* Shubham Works block: shared across the developer's sites, see docs/SHUBHAM_WORKS.md */
+.made-by{margin-top:20px;font-size:13px;line-height:1.6}
+footer .made-by p{margin:0}
+footer .made-by p + p{margin-top:2px}
+.made-by .mb-brand{display:flex;align-items:center;gap:6px;font-weight:600}
+.made-by .mb-mark{width:20px;height:20px;flex-shrink:0;color:var(--maker)}
+.made-by a{color:inherit;text-underline-offset:2px}
+.made-by a:hover{color:var(--ink)}
 
 @media (max-width: 900px){
   .hero{grid-template-columns:1fr}
