@@ -74,6 +74,16 @@ git-drawn-out/
 
 Hosted on [Vercel](https://vercel.com) as a static site. Every push to `main` deploys to production, and other branches get preview URLs.
 
+## Made by
+
+Git, Drawn Out is a **Shubham Works** project, made by [Shubham Chaudhary](https://shubhamworks.vercel.app/).
+
+Also:
+
+- [CloudPrep](https://aws-cloud-prepare.vercel.app/): practice exams for three AWS certifications
+- [Frontend Interview Prep](https://frontend-interview-prepare.vercel.app/): frontend interview questions with answers
+- [All projects](https://shubhamworks.vercel.app/)
+
 ## License
 
 [MIT](LICENSE) © Shubham Chaudhary
