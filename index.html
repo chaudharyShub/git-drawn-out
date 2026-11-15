@@ -24,6 +24,7 @@
 <link rel="icon" href="assets/icons/favicon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
+<script src="js/theme.js"></script>
 <script src="js/insights.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -32,15 +33,24 @@
 </head>
 <body>
 
+<nav class="topnav" id="topnav" aria-label="Sections">
+  <div class="topnav-in">
+    <a class="tn-home" href="#">Git, drawn <span>out</span></a>
+    <a href="#model">Model</a><a href="#playground">Playground</a><a href="#areas-sec">Three areas</a><a href="#hood">Under the hood</a><a href="#concepts">Concepts</a><a href="#ohno">Oh no</a><a href="#commands">Commands</a><a href="#glossary">Glossary</a>
+    <button type="button" class="theme-btn" data-theme-toggle aria-label="Switch theme"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g class="sun"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></g><path class="moon" d="M20 14.6A8.2 8.2 0 0 1 9.4 4a8.2 8.2 0 1 0 10.6 10.6z"/></svg></button>
+  </div>
+</nav>
+
 <div class="wrap">
 
 <header class="hero">
+  <button type="button" class="theme-btn hero-theme" data-theme-toggle aria-label="Switch theme"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g class="sun"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></g><path class="moon" d="M20 14.6A8.2 8.2 0 0 1 9.4 4a8.2 8.2 0 1 0 10.6 10.6z"/></svg></button>
   <div>
     <div class="eyebrow">A visual field guide</div>
     <h1>Git, drawn <span>out</span>.</h1>
     <p>Commits, branches, HEAD and remotes are just a few kinds of pointers. Once you can see them move, the commands stop feeling like magic spells.</p>
     <nav class="toc" aria-label="Sections">
-      <a href="#model">Mental model</a><a href="#playground">Playground</a><a href="#areas-sec">Three areas</a><a href="#hood">Under the hood</a><a href="#concepts">Concepts</a><a href="#commands">Commands</a>
+      <a href="#model">Mental model</a><a href="#playground">Playground</a><a href="#areas-sec">Three areas</a><a href="#hood">Under the hood</a><a href="#concepts">Concepts</a><a href="#ohno">Oh no, I…</a><a href="#commands">Commands</a><a href="#glossary">Glossary</a>
     </nav>
   </div>
   <div class="hero-graph" aria-label="Animated example commit graph">
@@ -54,7 +64,7 @@
   <h2>The whole mental model</h2>
   <p class="lede">Everything else on this page is a combination of these four things.</p>
   <div class="ideas">
-    <div class="idea"><div class="k c-commit">commit</div><p>A snapshot of every file, plus the ID of its parent commit. Arrows point backwards: children know their parents, never the other way.</p></div>
+    <div class="idea"><div class="k c-commit">commit</div><p>A snapshot of every tracked file, plus the ID of its parent commit. Arrows point backwards: children know their parents, never the other way.</p></div>
     <div class="idea"><div class="k c-branch">branch</div><p>A sticky note holding one commit ID. Committing moves the note forward. Creating a branch copies nothing.</p></div>
     <div class="idea"><div class="k c-head">HEAD</div><p>"You are here." Normally it points at a branch, and that branch is the one that moves when you commit.</p></div>
     <div class="idea"><div class="k c-remote">origin/main</div><p>Your repo's memory of where the server's main was the last time you talked to it. It goes stale until you fetch.</p></div>
@@ -64,7 +74,8 @@
 <section id="playground">
   <div class="eyebrow">Step through it</div>
   <h2>The playground</h2>
-  <p class="lede">Pick a scenario and press <b>Next</b> (or the → key). Watch which pointer moves on each command. Faded, dashed commits are <i>unreachable</i>: no branch points at them anymore, but Git still has them for a while.</p>
+  <p class="lede">Pick a scenario and press <b>Next</b> (or the → key). Watch which pointer moves on each command. Faded, dashed commits are <a class="gl" href="#g-reachable" data-g="reachable">unreachable</a>: no branch points at them anymore, but Git still has them for a while.</p>
+  <p class="lede">Turn on <b>Predict</b> to guess what each command changes before you see it. Click any commit to see its other names, like <code>HEAD~2</code>.</p>
   <div class="play" id="play" tabindex="-1">
     <div class="tabs" role="tablist" id="tabs"></div>
     <div class="stage">
@@ -81,7 +92,15 @@
           <span><i class="sw" style="background:var(--danger)"></i>detached HEAD</span>
           <span><i class="sw" style="background:var(--remote)"></i>remote-tracking</span>
           <span><i class="sw" style="background:var(--stash)"></i>stash</span>
+          <span><i class="sw" style="background:var(--violet)"></i>tag</span>
           <span>arrows point child → parent</span>
+        </div>
+        <div class="names" id="names" aria-live="polite"></div>
+        <div class="range">
+          <label for="rgA">Range:</label>
+          <code>git log</code>
+          <select id="rgA" aria-label="Left side of the range (commits to leave out)"></select><code>..</code><select id="rgB" aria-label="Right side of the range (commits to show)"></select>
+          <span class="rg-out" id="rgOut" aria-live="polite"></span>
         </div>
       </div>
       <div class="side">
@@ -92,31 +111,44 @@
           <button id="next" type="button" class="primary">Next →</button>
           <button id="auto" type="button">Play</button>
           <span class="count" id="count"></span>
+          <div class="ctl-extra">
+            <button id="predict" type="button" class="toggle" aria-pressed="false">Predict mode</button>
+            <button id="copyLink" type="button" class="ghost">Copy link to this step</button>
+          </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <div class="compare">
+    <h3>Merge vs rebase, side by side</h3>
+    <p>The same diverged history, combined two ways. Step through both at once.</p>
+    <div class="cmp-panes">
+      <div class="cmp-pane"><div class="cmp-title">merge</div><div class="graph-scroll"><svg id="cmpL" role="img" aria-label="Commit graph after merging"></svg></div><div class="cmp-term" id="cmpLt"></div></div>
+      <div class="cmp-pane"><div class="cmp-title">rebase</div><div class="graph-scroll"><svg id="cmpR" role="img" aria-label="Commit graph after rebasing"></svg></div><div class="cmp-term" id="cmpRt"></div></div>
+    </div>
+    <div class="cmp-note" id="cmpNote" aria-live="polite"></div>
+    <div class="controls">
+      <button id="cmpPrev" type="button">← Back</button>
+      <button id="cmpNext" type="button" class="primary">Next →</button>
+      <span class="count" id="cmpCount"></span>
     </div>
   </div>
 </section>
 
 <section id="areas-sec">
-  <div class="eyebrow" id="areasAnchor">Where your changes live</div>
+  <div class="eyebrow">Where your changes live</div>
   <h2>Working folder, staging, commits</h2>
-  <p class="lede">A change travels left to right. <code>git add</code> copies the file into the staging area (Git calls it the <i>index</i>), which is the draft of your next snapshot. <code>git commit</code> freezes that draft into a commit. Try the buttons and watch <code>git status</code>.</p>
+  <p class="lede">A change travels left to right. <code>git add</code> copies the file into the staging area (Git calls it the <a class="gl" href="#g-index" data-g="index">index</a>), which is the draft of your next snapshot. <code>git commit</code> freezes that draft into a commit. Try the buttons and watch <code>git status</code>.</p>
+  <p class="lede">With two files you can edit both, stage only one, and commit. The other stays behind for its own commit. That's how you keep each commit to one idea.</p>
   <div class="areas-demo">
     <div class="zones">
-      <div class="zone" id="zWd"><h3>Working folder</h3><div class="sub">The files you see and edit</div><div class="file" id="fWd"><span>app.js</span><span class="ver"></span></div></div>
-      <div class="zone" id="zIdx"><h3>Staging area</h3><div class="sub">The draft of the next commit</div><div class="file" id="fIdx"><span>app.js</span><span class="ver"></span></div></div>
-      <div class="zone" id="zRepo"><h3>Repository</h3><div class="sub">Commits, inside .git</div><div class="file" id="fRepo"><span>app.js</span><span class="ver"></span></div><div class="hist" id="hist"></div></div>
+      <div class="zone" id="zWd"><h3>Working folder</h3><div class="sub">The files you see and edit</div><div class="files"></div></div>
+      <div class="zone" id="zIdx"><h3>Staging area</h3><div class="sub">The draft of the next commit</div><div class="files"></div></div>
+      <div class="zone" id="zRepo"><h3>Repository</h3><div class="sub">Commits, inside .git</div><div class="files"></div><div class="hist" id="hist"></div></div>
     </div>
-    <div class="btnrow">
-      <button type="button" class="edit" id="bEdit">✎ edit app.js</button>
-      <button type="button" id="bAdd">git add app.js</button>
-      <button type="button" id="bCommit">git commit</button>
-      <button type="button" id="bUnstage">git restore --staged app.js</button>
-      <button type="button" id="bRestore">git restore app.js</button>
-      <button type="button" id="bReset">start over</button>
-    </div>
-    <div class="status-out" id="statusOut"></div>
+    <div class="area-btns" id="areaBtns"></div>
+    <div class="status-out" id="statusOut" aria-live="polite"></div>
   </div>
 </section>
 
@@ -163,7 +195,7 @@
     <dl class="dotgit">
       <dt>HEAD</dt><dd>One line, usually <code>ref: refs/heads/main</code>. In detached HEAD it holds a commit hash instead.</dd>
       <dt>refs/heads/main</dt><dd>A branch: a file containing a single 40-character commit hash. That's all a branch is.</dd>
-      <dt>refs/remotes/origin/main</dt><dd>Remote-tracking ref. Updated only by fetch, pull and push.</dd>
+      <dt>refs/remotes/origin/main</dt><dd><a class="gl" href="#g-tracking" data-g="tracking">Remote-tracking</a> ref. Updated only by fetch, pull and push.</dd>
       <dt>refs/tags/v1.0</dt><dd>A tag: like a branch that never moves.</dd>
       <dt>refs/stash</dt><dd>The latest stash entry, which is a commit.</dd>
       <dt>objects/</dt><dd>Every blob, tree and commit, compressed and filed by hash. Later packed into <code>objects/pack</code>.</dd>
@@ -184,17 +216,108 @@
     <div class="concept"><h3>Walking history: ~ and ^</h3><p><code>HEAD~1</code> is the parent, <code>HEAD~3</code> is three generations back along first parents. <code>HEAD^2</code> is the <i>second</i> parent of a merge commit. <code>main..feature</code> means "commits on feature that main doesn't have".</p>
 <pre>git log main..feature   <span class="c"># what would merge bring in?</span>
 git diff HEAD~2 HEAD     <span class="c"># changes in the last 2 commits</span></pre></div>
-    <div class="concept"><h3>Three-way merge and conflicts</h3><p>Git compares three snapshots: the merge base (last shared commit), yours, and theirs. A line changed on only one side is taken automatically. A line changed on both sides is a conflict, and Git writes both versions into the file for you to choose:</p>
+    <div class="concept"><h3>Three-way merge and conflicts</h3><p>Git compares three snapshots: the <a class="gl" href="#g-mergebase" data-g="mergebase">merge base</a> (last shared commit), yours, and theirs. A line changed on only one side is taken automatically. A line changed on both sides is a conflict, and Git writes both versions into the file for you to choose:</p>
 <pre><span class="a">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</span>
 const title = "Welcome back";
 =======
 const title = "Hello again";
 <span class="b">&gt;&gt;&gt;&gt;&gt;&gt;&gt; search</span></pre>
-<p>Edit the file, <code>git add</code> it, then <code>git commit</code> (or <code>git rebase --continue</code>). <code>git merge --abort</code> backs out completely.</p></div>
-    <div class="concept"><h3>Fast-forward vs merge commit</h3><p>If your branch is an ancestor of the other, merging just slides your sticky note forward. No new commit is made. If both sides have new commits, Git needs a merge commit with two parents. <code>git merge --no-ff</code> forces a merge commit anyway, and <code>git pull --ff-only</code> refuses anything except a slide.</p></div>
+<p>Edit the file, <code>git add</code> it, then <code>git commit</code> (or <code>git rebase --continue</code>). <code>git merge --abort</code> backs out completely. <a href="#conflict">Try resolving one below ↓</a></p></div>
+    <div class="concept"><h3>Fast-forward vs merge commit</h3><p>If your branch is an <a class="gl" href="#g-ancestor" data-g="ancestor">ancestor</a> of the other, merging just slides your sticky note forward. No new commit is made. If both sides have new commits, Git needs a merge commit with two parents. <code>git merge --no-ff</code> forces a merge commit anyway, and <code>git pull --ff-only</code> refuses anything except a slide.</p></div>
     <div class="concept"><h3>origin/main is a memory, not a live view</h3><p>Nothing updates on its own. <code>git status</code> saying "up to date with origin/main" only means up to date with the last fetch. <code>git fetch</code> is always safe: it downloads commits and moves <code>origin/*</code>, and never touches your branches or files.</p></div>
     <div class="concept"><h3>Detached HEAD isn't an error</h3><p>It means HEAD points at a commit instead of a branch, which happens when you check out a hash, a tag, or stop mid-rebase. Looking around is fine. If you commit there, create a branch (<code>git switch -c name</code>) before you leave, or those commits end up unreachable.</p></div>
     <div class="concept"><h3>.gitignore only affects untracked files</h3><p>Once a file is tracked, adding it to <code>.gitignore</code> does nothing. Stop tracking it with <code>git rm --cached file</code> and commit. The file stays on disk but leaves the repository from that commit on. Older commits still contain it, which matters for leaked secrets: rotate the secret.</p></div>
+  </div>
+
+  <div class="panel conflict-demo" id="conflict">
+    <h3>Try it: resolve a conflict</h3>
+    <p>You ran <code>git merge search</code> on main. main added "Pricing" to the menu and search added "Search" in the same spot, so Git stopped. Pick a side, or edit the file yourself, then stage and commit. Try committing too early, or staging with the markers still in.</p>
+    <div class="cf-grid">
+      <div>
+        <div class="cf-file">app.js</div>
+        <textarea id="cfText" spellcheck="false" rows="10" aria-label="app.js, with conflict markers"></textarea>
+      </div>
+      <div class="cf-side" id="cfBtns">
+        <div class="cf-lbl">Fix the file</div>
+        <div class="btnrow">
+          <button type="button" class="edit" data-a="ours">Keep ours (HEAD)</button>
+          <button type="button" class="edit" data-a="theirs">Keep theirs (search)</button>
+          <button type="button" class="edit" data-a="both">Keep both</button>
+        </div>
+        <div class="cf-lbl">Then tell Git</div>
+        <div class="btnrow">
+          <button type="button" data-a="add">git add app.js</button>
+          <button type="button" data-a="commit">git commit</button>
+          <button type="button" data-a="abort">git merge --abort</button>
+          <button type="button" data-a="restart">start over</button>
+        </div>
+      </div>
+    </div>
+    <div class="status-out" id="cfStatus" aria-live="polite"></div>
+  </div>
+</section>
+
+<section id="ohno">
+  <div class="eyebrow">When something goes wrong</div>
+  <h2>Oh no, I…</h2>
+  <p class="lede">Fixes for the mistakes everyone makes. Most of them work because Git almost never deletes a commit straight away. Where there's a playground step that shows it happening, there's a link to it.</p>
+  <div class="oh-list">
+    <details class="oh"><summary>…committed to the wrong branch</summary><div class="oh-body">
+<pre>git branch feature        <span class="c"># keep the commit on a new branch</span>
+git reset --hard HEAD~1   <span class="c"># move main back (commit or stash other work first)</span>
+git switch feature</pre>
+      <p>Only if you haven't pushed yet. If you have, <code>git revert</code> the commit on main instead.</p>
+      <a class="try" href="#play=wrong/3">See it in the playground →</a></div></details>
+    <details class="oh"><summary>…want to undo my last commit but keep the changes</summary><div class="oh-body">
+<pre>git reset --soft HEAD~1   <span class="c"># changes stay staged</span>
+git reset HEAD~1          <span class="c"># changes stay, unstaged</span></pre>
+      <p>The commit leaves the branch, your work doesn't. Not for commits you've already pushed.</p>
+      <a class="try" href="#play=reset/2">See it in the playground →</a></div></details>
+    <details class="oh"><summary>…need to undo a commit that's already pushed</summary><div class="oh-body">
+<pre>git revert &lt;commit&gt;
+git push</pre>
+      <p>Revert adds a new commit that does the opposite, so nobody's history gets rewritten.</p>
+      <a class="try" href="#play=pick/3">See it in the playground →</a></div></details>
+    <details class="oh"><summary>…want to fix my last commit's message, or add a forgotten file</summary><div class="oh-body">
+<pre>git add forgotten.js      <span class="c"># if you forgot a file</span>
+git commit --amend -m "better message"</pre>
+      <p>This makes a new commit in place of the old one. Only do it before you push.</p>
+      <a class="try" href="#play=amend/3">See it in the playground →</a></div></details>
+    <details class="oh"><summary>…lost commits after a reset, rebase or amend</summary><div class="oh-body">
+<pre>git reflog                <span class="c"># find the hash from before</span>
+git branch rescue &lt;hash&gt;  <span class="c"># or: git reset --hard &lt;hash&gt;</span></pre>
+      <p>The reflog lists every commit HEAD pointed at. Commits nothing else reaches stay in it for about 30 days by default.</p>
+      <a class="try" href="#play=reset/5">See it in the playground →</a></div></details>
+    <details class="oh"><summary>…committed in detached HEAD, then switched away</summary><div class="oh-body">
+<pre>git reflog                <span class="c"># or copy the hash from Git's warning</span>
+git branch rescue &lt;hash&gt;</pre>
+      <p>Give the commit a branch and it's safe again.</p>
+      <a class="try" href="#play=detached/5">See it in the playground →</a></div></details>
+    <details class="oh"><summary>…deleted a branch I still needed</summary><div class="oh-body">
+<pre><span class="c">Deleted branch login (was 3f9a1c2).   # Git printed the hash</span>
+git branch login 3f9a1c2</pre>
+      <p>The hash scrolled away? If you ever had the branch checked out, <code>git reflog</code> still has it.</p></div></details>
+    <details class="oh"><summary>…got my push rejected</summary><div class="oh-body">
+<pre>git pull --rebase
+git push</pre>
+      <p>Someone pushed first. Bring their commits in, put yours on top, push again. Don't reach for <code>--force</code>.</p>
+      <a class="try" href="#play=remote/4">See it in the playground →</a></div></details>
+    <details class="oh"><summary>…am stuck in a merge or rebase that's going badly</summary><div class="oh-body">
+<pre>git merge --abort
+git rebase --abort</pre>
+      <p>Either one puts everything back to how it was before you started. To finish it instead, try <a href="#conflict">the conflict demo</a>.</p></div></details>
+    <details class="oh"><summary>…want to throw away all my uncommitted changes</summary><div class="oh-body">
+<pre>git restore --staged .    <span class="c"># unstage everything</span>
+git restore .             <span class="c"># undo edits to tracked files</span>
+git clean -n              <span class="c"># preview untracked files to delete</span>
+git clean -fd             <span class="c"># delete them</span></pre>
+      <p>This one really can't be undone: work you never committed isn't in Git. <code>git stash -u</code> clears everything too, but keeps a copy just in case.</p>
+      <a class="try" href="#areas-sec">Try it in the three areas demo →</a></div></details>
+    <details class="oh"><summary>…committed a password or API key</summary><div class="oh-body">
+<pre>git rm --cached .env      <span class="c"># stop tracking it, keep the file</span>
+echo ".env" &gt;&gt; .gitignore
+git commit -m "stop tracking .env"</pre>
+      <p><b>Rotate the secret first.</b> Older commits still contain it, and if it was pushed, assume someone has it. Removing it from history takes <code>git filter-repo</code> and a force push, which rewrites history for everyone.</p></div></details>
   </div>
 </section>
 
@@ -202,8 +325,73 @@ const title = "Hello again";
   <div class="eyebrow">Field guide</div>
   <h2>Commands worth knowing</h2>
   <p class="lede">Each command is tagged by what it does to the picture. Filter by effect to see, for example, everything that can discard work.</p>
+  <div class="cmd-tools">
+    <input type="search" id="cmdSearch" placeholder="Search commands, e.g. undo or stash" aria-label="Search commands">
+    <button type="button" id="printCheat" class="ghost">Print cheat sheet</button>
+  </div>
   <div class="filters" id="filters"></div>
   <div class="cmd-groups" id="cmdGroups"></div>
+
+  <div class="ref-panels">
+    <div class="panel checkout">
+      <h3>Old <code>checkout</code>, new names</h3>
+      <p><code>git checkout</code> did two unrelated jobs, so Git 2.23 (2019) split it into <code>git switch</code> (move HEAD) and <code>git restore</code> (put back file contents). Older tutorials and answers online still use checkout. It still works, so here's the translation.</p>
+      <div class="xlate-wrap"><table class="xlate">
+        <thead><tr><th>Old</th><th>New</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><code>git checkout feature</code></td><td><code>git switch feature</code></td><td>Move to a branch</td></tr>
+          <tr><td><code>git checkout -b new</code></td><td><code>git switch -c new</code></td><td>Create a branch and move to it</td></tr>
+          <tr><td><code>git checkout a1b2c3</code></td><td><code>git switch --detach a1b2c3</code></td><td>Look at an old commit (detached HEAD)</td></tr>
+          <tr><td><code>git checkout -- app.js</code></td><td><code>git restore app.js</code></td><td>Throw away unstaged edits to a file</td></tr>
+          <tr><td><code>git reset HEAD app.js</code></td><td><code>git restore --staged app.js</code></td><td>Unstage a file, keep the edits</td></tr>
+          <tr><td><code>git checkout main -- app.js</code></td><td><code>git restore --source=main --staged --worktree app.js</code></td><td>Take a file's version from another branch</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="panel config">
+      <h3>Settings worth changing once</h3>
+      <p>Run these once per computer. <code>--global</code> saves them in your user config (<code>~/.gitconfig</code>), so they apply to every repository.</p>
+      <div class="cfg-row"><div class="cmd-line"><pre>git config --global user.name "Your Name"
+git config --global user.email you@example.com</pre><button type="button" class="copy" data-c="git config --global user.name &quot;Your Name&quot;
+git config --global user.email you@example.com" aria-label="Copy this setting">Copy</button></div><p>Written into every commit you make. Set these first.</p></div>
+      <div class="cfg-row"><div class="cmd-line"><pre>git config --global init.defaultBranch main</pre><button type="button" class="copy" data-c="git config --global init.defaultBranch main" aria-label="Copy this setting">Copy</button></div><p>New repositories start on a branch called main instead of master.</p></div>
+      <div class="cfg-row"><div class="cmd-line"><pre>git config --global pull.rebase true</pre><button type="button" class="copy" data-c="git config --global pull.rebase true" aria-label="Copy this setting">Copy</button></div><p><code>git pull</code> puts your local commits on top of what arrived, instead of making a merge commit. <code>pull.ff only</code> is the stricter choice: refuse anything except a fast-forward.</p></div>
+      <div class="cfg-row"><div class="cmd-line"><pre>git config --global push.autoSetupRemote true</pre><button type="button" class="copy" data-c="git config --global push.autoSetupRemote true" aria-label="Copy this setting">Copy</button></div><p>The first <code>git push</code> of a new branch just works, no <code>-u origin name</code> needed (Git 2.37+).</p></div>
+      <div class="cfg-row"><div class="cmd-line"><pre>git config --global fetch.prune true</pre><button type="button" class="copy" data-c="git config --global fetch.prune true" aria-label="Copy this setting">Copy</button></div><p><code>git fetch</code> also removes <code>origin/*</code> branches that were deleted on the server.</p></div>
+      <div class="cfg-row"><div class="cmd-line"><pre>git config --global merge.conflictStyle zdiff3</pre><button type="button" class="copy" data-c="git config --global merge.conflictStyle zdiff3" aria-label="Copy this setting">Copy</button></div><p>Conflicts also show the merge base's version, so you can see what each side actually changed (Git 2.35+).</p></div>
+      <div class="cfg-row"><div class="cmd-line"><pre>git config --global rerere.enabled true</pre><button type="button" class="copy" data-c="git config --global rerere.enabled true" aria-label="Copy this setting">Copy</button></div><p>Git remembers how you resolved a conflict and reuses it if the same conflict comes back, which helps when you rebase often.</p></div>
+      <div class="cfg-row"><div class="cmd-line"><pre>git config --global alias.lg "log --oneline --graph --all"</pre><button type="button" class="copy" data-c="git config --global alias.lg &quot;log --oneline --graph --all&quot;" aria-label="Copy this setting">Copy</button></div><p>Now <code>git lg</code> draws the graph from the playground for your real repo.</p></div>
+      <div class="cfg-row"><div class="cmd-line"><pre>git config --global core.editor "code --wait"</pre><button type="button" class="copy" data-c="git config --global core.editor &quot;code --wait&quot;" aria-label="Copy this setting">Copy</button></div><p>Commit messages and <code>rebase -i</code> open in VS Code instead of Vim.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="glossary">
+  <div class="eyebrow">Words Git uses</div>
+  <h2>Glossary</h2>
+  <p class="lede">Underlined words elsewhere on the page show these definitions when you hover or focus them.</p>
+  <dl class="gloss">
+    <div><dt id="g-worktree">working tree</dt><dd>The files you see and edit: one commit checked out, plus your changes. This page calls it the working folder.</dd></div>
+    <div><dt id="g-index">index (staging area)</dt><dd>The draft of your next commit. <code>git add</code> copies changes into it and <code>git commit</code> turns it into a commit.</dd></div>
+    <div><dt id="g-commit">commit</dt><dd>A snapshot of every tracked file, plus its parent commit(s), author, date and message. It never changes once made.</dd></div>
+    <div><dt id="g-hash">hash</dt><dd>The 40-character ID Git computes from an object's contents (SHA-1 by default). Same content, same hash. The first 7 characters are usually enough to name a commit.</dd></div>
+    <div><dt id="g-ref">ref</dt><dd>A name that points at a commit: a branch, a tag, a remote-tracking branch or HEAD. On disk it's a small file in <code>.git</code>.</dd></div>
+    <div><dt id="g-branch">branch</dt><dd>A ref that moves. When you commit while it's checked out, it moves to the new commit.</dd></div>
+    <div><dt id="g-head">HEAD</dt><dd>Where you are. Usually it points at a branch, and that branch is the one that moves when you commit.</dd></div>
+    <div><dt id="g-detached">detached HEAD</dt><dd>HEAD points straight at a commit instead of a branch. New commits there belong to no branch.</dd></div>
+    <div><dt id="g-tag">tag</dt><dd>A ref that stays on one commit, used for releases. An annotated tag (<code>-a</code>) also stores a message, the tagger and a date.</dd></div>
+    <div><dt id="g-remote">remote</dt><dd>A saved name for another copy of the repository, usually <code>origin</code> for the one you cloned from.</dd></div>
+    <div><dt id="g-tracking">remote-tracking branch</dt><dd>A ref like <code>origin/main</code>: your repo's record of where that branch was on the remote the last time you fetched, pulled or pushed.</dd></div>
+    <div><dt id="g-upstream">upstream</dt><dd>The remote branch your local branch is paired with. Plain <code>git pull</code> and <code>git push</code> use it, and <code>git status</code> compares against it ("ahead 2, behind 1"). <code>git push -u</code> sets it.</dd></div>
+    <div><dt id="g-ancestor">ancestor</dt><dd>Any commit you reach by following parent arrows backwards. B is an ancestor of D if D's history includes B.</dd></div>
+    <div><dt id="g-mergebase">merge base</dt><dd>The most recent commit two branches share. A three-way merge compares both sides against it. <code>git merge-base a b</code> prints it.</dd></div>
+    <div><dt id="g-ff">fast-forward</dt><dd>Moving a branch forward to a later commit in its own history. No new commit is needed.</dd></div>
+    <div><dt id="g-reachable">reachable</dt><dd>A commit is reachable if you can get to it from a branch, tag or HEAD by following parents. Unreachable commits stay recoverable through the reflog for a while, until <code>git gc</code> removes them.</dd></div>
+    <div><dt id="g-reflog">reflog</dt><dd>A local log of every commit HEAD and each branch has pointed at. It's never pushed, so it only covers your own repo.</dd></div>
+    <div><dt id="g-stash">stash</dt><dd>Uncommitted changes saved away as special commits. <code>git stash list</code> shows them.</dd></div>
+    <div><dt id="g-rebase">rebase</dt><dd>Replaying commits on top of a different base. The replayed commits are new commits with new hashes.</dd></div>
+    <div><dt id="g-objects">blob, tree</dt><dd>The objects Git stores besides commits: a blob is one file's contents, a tree is a folder listing that points to blobs and other trees.</dd></div>
+  </dl>
 </section>
 
 <footer>
@@ -220,5 +408,6 @@ const title = "Hello again";
 </div>
 
 <script src="js/main.js"></script>
+<script src="js/page.js"></script>
 </body>
 </html>

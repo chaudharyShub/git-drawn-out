@@ -19,10 +19,14 @@
 ## What's inside
 
 - **Mental model.** Commits, branches and HEAD as a few kinds of pointers.
-- **Playground.** Step through commands and watch the commit graph change.
-- **Three areas.** Working folder, staging area and commits.
-- **Under the hood.** What actually lives in `.git`.
-- **Concepts and commands.** Reset and reflog, detached HEAD, stash, and the commands worth knowing.
+- **Playground.** Twelve scenarios you step through while the commit graph changes, from basics to force pushes. Predict mode asks what each command will change before you see it. Click any commit to see its names (`HEAD~2`, `main^2`), pick two refs to highlight `A..B`, and copy a link to any step (`#play=rebase/2`).
+- **Merge vs rebase.** The same history combined both ways, side by side.
+- **Three areas.** Working folder, staging area and commits, with two files so you can stage one and not the other.
+- **Under the hood.** What actually lives in `.git`, and a live blob-hash calculator.
+- **Concepts.** Reset and reflog, detached HEAD, three-way merges, plus a conflict you resolve yourself.
+- **Oh no, I….** Fixes for common mistakes, each linked to the playground step that shows it.
+- **Commands.** Searchable and filterable by effect, with copy buttons, an old-`checkout`-to-`switch`/`restore` table, settings worth changing once, and a printable cheat sheet.
+- **Glossary.** Definitions that also appear when you hover underlined words.
 
 The graph colors carry meaning: **blue** = branch, **pink** = HEAD, **green** = remote, **amber** = stash.
 
@@ -50,7 +54,10 @@ git-drawn-out/
 │   ├── main.css          # styles for the guide
 │   └── 404.css           # styles for the 404 page
 ├── js/
-│   └── main.js           # commit-graph renderer, playground and hero animation
+│   ├── main.js           # commit-graph renderer, playground, demos and command list
+│   ├── page.js           # conflict demo, glossary tooltips, sticky nav, printing
+│   ├── theme.js          # light/dark toggle (loaded in <head> so there's no flash)
+│   └── insights.js       # analytics, skipped on the owner's own browsers
 ├── assets/
 │   ├── icons/            # favicon.svg, favicon-32, apple-touch-icon, 192/512 app icons
 │   └── images/           # og-image.png (social preview)
