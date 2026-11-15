@@ -55,6 +55,7 @@ git-drawn-out/
 │   ├── icons/            # favicon.svg, favicon-32, apple-touch-icon, 192/512 app icons
 │   └── images/           # og-image.png (social preview)
 ├── design/               # HTML sources for the images (not deployed)
+├── docs/                 # notes, e.g. the shared Shubham Works footer (not deployed)
 ├── site.webmanifest      # app name and icons for "Add to Home Screen"
 ├── robots.txt
 ├── sitemap.xml
