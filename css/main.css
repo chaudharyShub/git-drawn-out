@@ -335,6 +335,10 @@ footer .made-by p + p{margin-top:2px}
   .cmp-pane + .cmp-pane{border-left:none;border-top:1px solid var(--line)}
   .gloss{grid-template-columns:1fr}
 }
+/* section links glide to their section instead of jumping */
+@media (prefers-reduced-motion: no-preference){
+  html{scroll-behavior:smooth}
+}
 @media (prefers-reduced-motion: reduce){
   *{animation:none!important;transition:none!important}
 }
