@@ -1,0 +1,827 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="A visual field guide to Git: commits, branches, HEAD, remotes and stash, drawn as diagrams with an interactive playground.">
+<meta name="theme-color" content="#BF1A5A">
+<meta property="og:title" content="Git, Drawn Out">
+<meta property="og:description" content="A visual field guide to Git: commits, branches, HEAD, remotes and stash, drawn as diagrams.">
+<meta property="og:type" content="website">
+<title>Git, Drawn Out</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23BF1A5A'/%3E%3Cpath d='M11 8v16M11 18c0-4 10-3 10-8' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round'/%3E%3Ccircle cx='11' cy='8' r='3' fill='%23fff'/%3E%3Ccircle cx='11' cy='24' r='3' fill='%23fff'/%3E%3Ccircle cx='21' cy='10' r='3' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: one reading column; the playground and diagrams break wider. Graph colors = meaning (branch / HEAD / remote / stash). */
+:root{
+  --bg:#F2F4F8; --surface:#FFFFFF; --surface2:#E7EBF2; --ink:#151A28; --muted:#586078; --line:#D2D8E3;
+  --branch:#1E66C8; --head:#BF1A5A; --remote:#23824A; --stash:#9A6200; --danger:#C9430B; --violet:#6B3FC4;
+  --node:#151A28; --nodefill:#FFFFFF; --pilltext:#FFFFFF;
+  --term-bg:#171C2A; --term-fg:#DDE2EC; --term-dim:#7C859C; --term-prompt:#7FB0FF;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F121A; --surface:#171B26; --surface2:#20263480; --ink:#E5E9F1; --muted:#98A1B6; --line:#2C3445;
+  --branch:#5EA4FF; --head:#FF5E9C; --remote:#4FCB76; --stash:#E8AE3E; --danger:#FF8B4E; --violet:#A98BFF;
+  --node:#E5E9F1; --nodefill:#171B26; --pilltext:#0F121A;
+  --term-bg:#0A0C12; --term-fg:#DDE2EC; --term-dim:#6D7790; --term-prompt:#7FB0FF; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0F121A; --surface:#171B26; --surface2:#20263480; --ink:#E5E9F1; --muted:#98A1B6; --line:#2C3445;
+  --branch:#5EA4FF; --head:#FF5E9C; --remote:#4FCB76; --stash:#E8AE3E; --danger:#FF8B4E; --violet:#A98BFF;
+  --node:#E5E9F1; --nodefill:#171B26; --pilltext:#0F121A;
+  --term-bg:#0A0C12; --term-fg:#DDE2EC; --term-dim:#6D7790; --term-prompt:#7FB0FF; color-scheme:dark }
+
+*{box-sizing:border-box}
+/* Text selection uses the pink HEAD accent, tinted so the text keeps its own color and stays readable */
+::selection{background:rgba(255,94,156,.32)}
+@supports (background:color-mix(in srgb, red 50%, transparent)){
+  ::selection{background:color-mix(in srgb, var(--head) 32%, transparent)}
+}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:0 64px}
+.wrap{max-width:1080px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.1;margin:0}
+h2{font-size:clamp(28px,4vw,40px);font-weight:800;letter-spacing:-.02em}
+h3{font-size:19px;font-weight:700}
+p{margin:0}
+code,.mono{font-family:var(--f-mono);font-size:.9em}
+p code, li code, td code{background:var(--surface2);padding:1px 5px;border-radius:4px}
+a{color:var(--branch)}
+section{padding-block:56px 8px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.lede{max-width:65ch;color:var(--muted);margin-top:12px}
+:focus-visible{outline:2px solid var(--head);outline-offset:2px}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1fr 1.15fr;gap:32px;align-items:center;padding-block:48px 8px}
+.hero h1{font-size:clamp(44px,7vw,84px);font-weight:800;letter-spacing:-.035em}
+.hero h1 span{color:var(--head)}
+.hero p{margin-top:16px;max-width:46ch;color:var(--muted);font-size:17px}
+.hero-graph{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 8px 10px;min-width:0}
+.hero-graph .scroll{overflow-x:auto}
+.hero-cmd{font-family:var(--f-mono);font-size:13px;color:var(--muted);padding:4px 10px 0;min-height:24px}
+.hero-cmd b{color:var(--term-prompt);font-weight:500}
+nav.toc{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px}
+nav.toc a{font-family:var(--f-mono);font-size:13px;text-decoration:none;color:var(--ink);border:1px solid var(--line);padding:5px 10px;border-radius:999px;background:var(--surface)}
+nav.toc a:hover{border-color:var(--head)}
+
+/* four ideas */
+.ideas{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:28px}
+.idea{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px}
+.idea .k{font-family:var(--f-mono);font-size:13px;font-weight:600}
+.idea p{font-size:14.5px;color:var(--muted);margin-top:8px}
+.k.c-commit{color:var(--ink)} .k.c-branch{color:var(--branch)} .k.c-head{color:var(--head)} .k.c-remote{color:var(--remote)}
+
+/* playground */
+.play{margin-top:24px;background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.tabs{display:flex;gap:4px;padding:10px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{font:500 14px var(--f-body);border:1px solid transparent;background:none;color:var(--muted);padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.tabs button:hover{color:var(--ink);background:var(--surface2)}
+.tabs button[aria-selected="true"]{color:var(--ink);background:var(--surface2);border-color:var(--line)}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 340px}
+.graph-pane{padding:16px 8px 8px;min-width:0;border-right:1px solid var(--line)}
+.graph-scroll{overflow-x:auto;padding-bottom:4px}
+.graph-scroll svg{display:block;margin:0 auto}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted);padding:6px 12px 4px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+.side{display:flex;flex-direction:column;min-width:0}
+.term{background:var(--term-bg);color:var(--term-fg);font-family:var(--f-mono);font-size:13px;line-height:1.55;padding:14px 14px;height:190px;overflow-y:auto}
+.term .ln{color:var(--term-dim);white-space:pre-wrap;word-break:break-word}
+.term .ln.cur{color:var(--term-fg)}
+.term .ln .p{color:var(--term-prompt)}
+.term .out{color:var(--term-dim);padding-left:2ch;white-space:pre-wrap}
+.term .out.err{color:#FF8B7A}
+.term .ln.cur + .out{color:#B9C2D6}
+.note{padding:16px;font-size:14.5px;flex:1}
+.note p + p{margin-top:8px}
+.note pre{font-family:var(--f-mono);font-size:12px;background:var(--surface2);padding:8px 10px;border-radius:6px;overflow-x:auto;margin:8px 0 0}
+.controls{display:flex;align-items:center;gap:8px;padding:12px 16px;border-top:1px solid var(--line)}
+.controls button{font:500 14px var(--f-body);border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer}
+.controls button.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.controls button:disabled{opacity:.4;cursor:default}
+.controls .count{margin-left:auto;font-family:var(--f-mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.areas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:4px 12px 12px}
+.area{border:1px dashed var(--line);border-radius:8px;padding:8px 10px;font-size:13px;min-width:0}
+.area b{display:block;font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.area span{display:block;margin-top:2px}
+.area.flash{animation:flash .7s ease}
+@keyframes flash{0%{background:color-mix(in srgb, var(--head) 18%, transparent)}100%{background:transparent}}
+
+/* svg graph */
+.g-node circle{fill:var(--nodefill);stroke:var(--node);stroke-width:2.2}
+.g-node .id{font:600 13px var(--f-mono);fill:var(--node);text-anchor:middle;dominant-baseline:central}
+.g-node .msg{font:400 11.5px var(--f-mono);fill:var(--muted);text-anchor:middle}
+.g-node.unreach circle{stroke-dasharray:3 3}
+.g-node.remote circle{stroke:var(--remote);stroke-dasharray:4 3}
+.g-node.remote .id{fill:var(--remote)}
+.g-edge{fill:none;stroke:var(--muted);stroke-width:1.8}
+.g-edge.remote{stroke:var(--remote);stroke-dasharray:4 3}
+.arrowhead{fill:var(--muted)}
+.pill rect{rx:5}
+.pill text{font:600 11.5px var(--f-mono);fill:var(--pilltext);text-anchor:middle;dominant-baseline:central}
+.pill.branch rect{fill:var(--branch)}
+.pill.head rect{fill:var(--head)}
+.pill.detached rect{fill:var(--danger)}
+.pill.remote rect{fill:var(--remote)}
+.pill.stash rect{fill:var(--stash)}
+.pill.gh rect{fill:none;stroke:var(--remote);stroke-width:1.5;stroke-dasharray:4 3}
+.pill.gh text{fill:var(--remote)}
+.unborn{font:400 13px var(--f-mono);fill:var(--muted)}
+
+/* three areas widget */
+.areas-demo{margin-top:24px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px}
+.zones{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;position:relative}
+.zone{border:1px solid var(--line);border-radius:12px;padding:14px;min-height:150px;background:var(--bg);min-width:0}
+.zone h3{font-size:16px}
+.zone .sub{font-size:13px;color:var(--muted);margin-top:2px}
+.file{margin-top:14px;display:flex;align-items:center;gap:10px;font-family:var(--f-mono);font-size:14px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.file .ver{margin-left:auto;font-weight:600}
+.file.diff{border-color:var(--danger)}
+.file.diff .ver{color:var(--danger)}
+.file.arrive{animation:arrive .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes arrive{from{transform:translateX(-40px);opacity:.2}to{transform:none;opacity:1}}
+.zone .hist{margin-top:10px;font-family:var(--f-mono);font-size:12px;color:var(--muted);word-break:break-word}
+.zone-arrows{display:flex;justify-content:space-around;font-family:var(--f-mono);font-size:12px;color:var(--muted);margin-top:8px}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.btnrow button{font:500 13px var(--f-mono);border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 12px;cursor:pointer}
+.btnrow button:hover:not(:disabled){border-color:var(--head)}
+.btnrow button:disabled{opacity:.35;cursor:default}
+.btnrow button.edit{border-style:dashed}
+.status-out{margin-top:14px;background:var(--term-bg);color:var(--term-fg);font-family:var(--f-mono);font-size:13px;border-radius:10px;padding:12px 14px;white-space:pre-wrap;line-height:1.55}
+.status-out .g{color:#6FD38E} .status-out .r{color:#FF8B7A} .status-out .d{color:var(--term-dim)}
+
+/* under the hood */
+.hood{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;margin-top:24px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;min-width:0}
+.panel > p{color:var(--muted);font-size:14.5px;margin-top:6px}
+.obj-svg{width:100%;height:auto;margin-top:12px;display:block}
+.obj rect{fill:var(--bg);stroke:var(--line);stroke-width:1.5}
+.obj.commit rect{stroke:var(--node)}
+.obj.tree rect{stroke:var(--branch)}
+.obj.blob rect{stroke:var(--muted)}
+.obj.shared rect{stroke:var(--head);stroke-width:2.2}
+.obj text{font:600 12px var(--f-mono);fill:var(--ink);text-anchor:middle}
+.obj text.t{font:500 10px var(--f-mono);fill:var(--muted);letter-spacing:.08em}
+.o-edge{stroke:var(--muted);stroke-width:1.5;fill:none}
+.o-edge.hot{stroke:var(--head);stroke-width:2.2;stroke-dasharray:6 5;animation:march 1.2s linear infinite}
+@keyframes march{to{stroke-dashoffset:-22}}
+.o-cap{font:400 11px var(--f-mono);fill:var(--muted)}
+.hash-demo textarea{width:100%;font:14px var(--f-mono);background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px;resize:vertical;min-height:70px;margin-top:12px}
+.hash-demo label{display:flex;gap:8px;align-items:center;font-size:13.5px;color:var(--muted);margin-top:8px}
+.hash-out{margin-top:12px;font-family:var(--f-mono);font-size:13px;word-break:break-all;background:var(--term-bg);color:var(--term-fg);border-radius:8px;padding:10px 12px}
+.hash-out .h{color:#FFD27A}
+.dotgit{margin-top:16px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 16px;font-size:14px}
+.dotgit dt{font-family:var(--f-mono);font-size:13px;color:var(--branch);white-space:nowrap}
+.dotgit dd{margin:0;color:var(--muted)}
+
+/* concepts */
+.concepts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:24px}
+.concept{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;min-width:0}
+.concept p{color:var(--muted);font-size:14.5px;margin-top:8px}
+.concept pre{font-family:var(--f-mono);font-size:12.5px;background:var(--term-bg);color:var(--term-fg);padding:10px 12px;border-radius:8px;overflow-x:auto;margin:10px 0 0;line-height:1.5}
+.concept pre .a{color:#FF8B7A} .concept pre .b{color:#6FD38E} .concept pre .c{color:#7FB0FF}
+
+/* commands */
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.chip{display:inline-flex;align-items:center;gap:6px;font:500 12.5px var(--f-body);border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:4px 10px;cursor:pointer}
+.chip .sw{width:9px;height:9px;border-radius:50%}
+.chip[aria-pressed="true"]{border-color:var(--ink);background:var(--surface2)}
+.cmd-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}
+.cmd-group{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;min-width:0}
+.cmd-group[hidden]{display:none}
+.cmd-row{display:grid;grid-template-columns:minmax(0,1fr);gap:2px;padding:10px 0;border-top:1px solid var(--line)}
+.cmd-row:first-of-type{border-top:none}
+.cmd-row code{font-size:13.5px;font-weight:500;color:var(--ink);word-break:break-word}
+.cmd-row .what{font-size:14px;color:var(--muted)}
+.effs{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.eff{font:500 11px var(--f-mono);padding:1px 7px;border-radius:4px;color:var(--pilltext)}
+.e-read{background:var(--muted)} .e-stage{background:var(--stash)} .e-commit{background:var(--branch)} .e-pointer{background:var(--head)}
+.e-rewrite{background:var(--danger)} .e-files{background:var(--violet)} .e-remote{background:var(--remote)}
+.sw.e-read{background:var(--muted)}
+footer{margin-top:56px;padding-top:24px;border-top:1px solid var(--line);color:var(--muted);font-size:14.5px}
+footer p + p{margin-top:8px}
+
+@media (max-width: 900px){
+  .hero{grid-template-columns:1fr}
+  .ideas{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stage{grid-template-columns:1fr}
+  .graph-pane{border-right:none;border-bottom:1px solid var(--line)}
+  .hood,.concepts,.cmd-groups{grid-template-columns:1fr}
+}
+@media (max-width: 560px){
+  .ideas,.zones,.areas{grid-template-columns:1fr}
+  .zone{min-height:0}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header class="hero">
+  <div>
+    <div class="eyebrow">A visual field guide</div>
+    <h1>Git, drawn <span>out</span>.</h1>
+    <p>Commits, branches, HEAD and remotes are just a few kinds of pointers. Once you can see them move, the commands stop feeling like magic spells.</p>
+    <nav class="toc" aria-label="Sections">
+      <a href="#model">Mental model</a><a href="#playground">Playground</a><a href="#areas-sec">Three areas</a><a href="#hood">Under the hood</a><a href="#concepts">Concepts</a><a href="#commands">Commands</a>
+    </nav>
+  </div>
+  <div class="hero-graph" aria-label="Animated example commit graph">
+    <div class="scroll"><svg id="heroSvg" role="img" aria-label="A commit graph with main and feature branches"></svg></div>
+    <div class="hero-cmd" id="heroCmd"><b>$</b> git log --oneline --graph</div>
+  </div>
+</header>
+
+<section id="model">
+  <div class="eyebrow">Hold these four ideas</div>
+  <h2>The whole mental model</h2>
+  <p class="lede">Everything else on this page is a combination of these four things.</p>
+  <div class="ideas">
+    <div class="idea"><div class="k c-commit">commit</div><p>A snapshot of every file, plus the ID of its parent commit. Arrows point backwards: children know their parents, never the other way.</p></div>
+    <div class="idea"><div class="k c-branch">branch</div><p>A sticky note holding one commit ID. Committing moves the note forward. Creating a branch copies nothing.</p></div>
+    <div class="idea"><div class="k c-head">HEAD</div><p>"You are here." Normally it points at a branch, and that branch is the one that moves when you commit.</p></div>
+    <div class="idea"><div class="k c-remote">origin/main</div><p>Your repo's memory of where the server's main was the last time you talked to it. It goes stale until you fetch.</p></div>
+  </div>
+</section>
+
+<section id="playground">
+  <div class="eyebrow">Step through it</div>
+  <h2>The playground</h2>
+  <p class="lede">Pick a scenario and press <b>Next</b> (or the → key). Watch which pointer moves on each command. Faded, dashed commits are <i>unreachable</i>: no branch points at them anymore, but Git still has them for a while.</p>
+  <div class="play" id="play" tabindex="-1">
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <div class="stage">
+      <div class="graph-pane">
+        <div class="graph-scroll"><svg id="graphSvg" role="img" aria-label="Commit graph for the selected scenario"></svg></div>
+        <div class="areas" id="areas" hidden>
+          <div class="area"><b>Working folder</b><span id="a0"></span></div>
+          <div class="area"><b>Staging area</b><span id="a1"></span></div>
+          <div class="area"><b>HEAD commit</b><span id="a2"></span></div>
+        </div>
+        <div class="legend">
+          <span><i class="sw" style="background:var(--branch)"></i>branch</span>
+          <span><i class="sw" style="background:var(--head)"></i>HEAD</span>
+          <span><i class="sw" style="background:var(--danger)"></i>detached HEAD</span>
+          <span><i class="sw" style="background:var(--remote)"></i>remote-tracking</span>
+          <span><i class="sw" style="background:var(--stash)"></i>stash</span>
+          <span>arrows point child → parent</span>
+        </div>
+      </div>
+      <div class="side">
+        <div class="term" id="term" aria-live="polite"></div>
+        <div class="note" id="note"></div>
+        <div class="controls">
+          <button id="prev" type="button">← Back</button>
+          <button id="next" type="button" class="primary">Next →</button>
+          <button id="auto" type="button">Play</button>
+          <span class="count" id="count"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="areas-sec">
+  <div class="eyebrow" id="areasAnchor">Where your changes live</div>
+  <h2>Working folder, staging, commits</h2>
+  <p class="lede">A change travels left to right. <code>git add</code> copies the file into the staging area (Git calls it the <i>index</i>), which is the draft of your next snapshot. <code>git commit</code> freezes that draft into a commit. Try the buttons and watch <code>git status</code>.</p>
+  <div class="areas-demo">
+    <div class="zones">
+      <div class="zone" id="zWd"><h3>Working folder</h3><div class="sub">The files you see and edit</div><div class="file" id="fWd"><span>app.js</span><span class="ver"></span></div></div>
+      <div class="zone" id="zIdx"><h3>Staging area</h3><div class="sub">The draft of the next commit</div><div class="file" id="fIdx"><span>app.js</span><span class="ver"></span></div></div>
+      <div class="zone" id="zRepo"><h3>Repository</h3><div class="sub">Commits, inside .git</div><div class="file" id="fRepo"><span>app.js</span><span class="ver"></span></div><div class="hist" id="hist"></div></div>
+    </div>
+    <div class="btnrow">
+      <button type="button" class="edit" id="bEdit">✎ edit app.js</button>
+      <button type="button" id="bAdd">git add app.js</button>
+      <button type="button" id="bCommit">git commit</button>
+      <button type="button" id="bUnstage">git restore --staged app.js</button>
+      <button type="button" id="bRestore">git restore app.js</button>
+      <button type="button" id="bReset">start over</button>
+    </div>
+    <div class="status-out" id="statusOut"></div>
+  </div>
+</section>
+
+<section id="hood">
+  <div class="eyebrow">Lake depth</div>
+  <h2>Under the hood</h2>
+  <p class="lede">Git is a small database of four object types (blob, tree, commit, tag), each named by the hash of its contents, plus a folder of pointers.</p>
+  <div class="hood">
+    <div class="panel">
+      <h3>A commit points to a tree, a tree points to blobs</h3>
+      <p>A <b>blob</b> is a file's contents. A <b>tree</b> is a folder listing (names → blobs and subtrees). A <b>commit</b> is a tree plus parent, author and message. In commit 2 only app.js changed, so README.md's blob is reused as-is. That's why full snapshots stay cheap.</p>
+      <svg class="obj-svg" viewBox="0 0 640 300" role="img" aria-label="Two commits sharing an unchanged blob">
+        <defs><marker id="oarr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 z" class="arrowhead"/></marker></defs>
+        <path class="o-edge" d="M430 40 L212 40" marker-end="url(#oarr)"/>
+        <text class="o-cap" x="321" y="30" text-anchor="middle">parent</text>
+        <path class="o-edge" d="M150 60 L150 118" marker-end="url(#oarr)"/>
+        <path class="o-edge" d="M490 60 L490 118" marker-end="url(#oarr)"/>
+        <path class="o-edge" d="M130 160 C110 200 70 200 64 228" marker-end="url(#oarr)"/>
+        <path class="o-edge" d="M170 160 C210 205 300 200 314 228" marker-end="url(#oarr)"/>
+        <path class="o-edge hot" d="M470 160 C430 205 340 200 326 228" marker-end="url(#oarr)"/>
+        <path class="o-edge" d="M510 160 C530 200 570 200 576 228" marker-end="url(#oarr)"/>
+        <g class="obj commit" transform="translate(150 40)"><rect x="-62" y="-22" width="124" height="44" rx="8"/><text class="t" y="-6">COMMIT</text><text y="11">1a2b3c "init"</text></g>
+        <g class="obj commit" transform="translate(490 40)"><rect x="-62" y="-22" width="124" height="44" rx="8"/><text class="t" y="-6">COMMIT</text><text y="11">4d5e6f "fix"</text></g>
+        <g class="obj tree" transform="translate(150 140)"><rect x="-50" y="-20" width="100" height="40" rx="8"/><text class="t" y="-5">TREE</text><text y="11">9a01bc</text></g>
+        <g class="obj tree" transform="translate(490 140)"><rect x="-50" y="-20" width="100" height="40" rx="8"/><text class="t" y="-5">TREE</text><text y="11">c7d8e9</text></g>
+        <g class="obj blob" transform="translate(64 250)"><rect x="-58" y="-20" width="116" height="40" rx="8"/><text class="t" y="-5">BLOB · app.js v1</text><text y="11">e3f4a5</text></g>
+        <g class="obj blob shared" transform="translate(320 250)"><rect x="-64" y="-20" width="128" height="40" rx="8"/><text class="t" y="-5">BLOB · README.md</text><text y="11">b6c7d8</text></g>
+        <g class="obj blob" transform="translate(576 250)"><rect x="-58" y="-20" width="116" height="40" rx="8"/><text class="t" y="-5">BLOB · app.js v2</text><text y="11">f0a1b2</text></g>
+        <text class="o-cap" x="320" y="292" text-anchor="middle">same content → same hash → stored once</text>
+      </svg>
+    </div>
+    <div class="panel hash-demo">
+      <h3>The name is the hash</h3>
+      <p>Git names a blob by the SHA-1 of <code>"blob &lt;size&gt;\0"</code> followed by the contents. Same content always gives the same name. This box computes the real hash; it will match <code>git hash-object</code>.</p>
+      <textarea id="hashIn" aria-label="File contents to hash">hello</textarea>
+      <label><input type="checkbox" id="hashNl" checked> add a trailing newline (like <code>echo</code> does)</label>
+      <div class="hash-out" id="hashOut">…</div>
+      <p style="margin-top:10px;font-size:13.5px;color:var(--muted)">Check it: <code>echo hello | git hash-object --stdin</code>. Change one character and the whole hash changes, which is why editing an old commit always produces a new ID.</p>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:16px">
+    <h3>What's inside the .git folder</h3>
+    <p>The <code>.git</code> folder <i>is</i> the repository. Your project files are just one checked-out snapshot of it.</p>
+    <dl class="dotgit">
+      <dt>HEAD</dt><dd>One line, usually <code>ref: refs/heads/main</code>. In detached HEAD it holds a commit hash instead.</dd>
+      <dt>refs/heads/main</dt><dd>A branch: a file containing a single 40-character commit hash. That's all a branch is.</dd>
+      <dt>refs/remotes/origin/main</dt><dd>Remote-tracking ref. Updated only by fetch, pull and push.</dd>
+      <dt>refs/tags/v1.0</dt><dd>A tag: like a branch that never moves.</dd>
+      <dt>refs/stash</dt><dd>The latest stash entry, which is a commit.</dd>
+      <dt>objects/</dt><dd>Every blob, tree and commit, compressed and filed by hash. Later packed into <code>objects/pack</code>.</dd>
+      <dt>index</dt><dd>The staging area, as a binary file listing the next snapshot.</dd>
+      <dt>logs/</dt><dd>The reflog: a history of where HEAD and each branch have pointed.</dd>
+      <dt>config</dt><dd>This repo's settings, including remote URLs.</dd>
+      <dt>hooks/</dt><dd>Scripts Git can run on events like commit or push.</dd>
+    </dl>
+  </div>
+</section>
+
+<section id="concepts">
+  <div class="eyebrow">One level deeper</div>
+  <h2>Concepts that make things click</h2>
+  <div class="concepts">
+    <div class="concept"><h3>Rewriting history means replacing it</h3><p>Commits never change. <code>--amend</code>, <code>rebase</code> and <code>reset</code> make <i>new</i> commits (or pick older ones) and move a branch to them. The old ones just become unreachable. That's why rewriting pushed commits hurts: your teammates still have the old ones.</p></div>
+    <div class="concept"><h3>Reachability decides what survives</h3><p>Git keeps anything reachable from a branch, tag, HEAD or the reflog. Unreachable commits stay recoverable through <code>git reflog</code> for roughly 30 days by default, until <code>git gc</code> clears them out. If you committed it, you can almost always get it back.</p></div>
+    <div class="concept"><h3>Walking history: ~ and ^</h3><p><code>HEAD~1</code> is the parent, <code>HEAD~3</code> is three generations back along first parents. <code>HEAD^2</code> is the <i>second</i> parent of a merge commit. <code>main..feature</code> means "commits on feature that main doesn't have".</p>
+<pre>git log main..feature   <span class="c"># what would merge bring in?</span>
+git diff HEAD~2 HEAD     <span class="c"># changes in the last 2 commits</span></pre></div>
+    <div class="concept"><h3>Three-way merge and conflicts</h3><p>Git compares three snapshots: the merge base (last shared commit), yours, and theirs. A line changed on only one side is taken automatically. A line changed on both sides is a conflict, and Git writes both versions into the file for you to choose:</p>
+<pre><span class="a">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</span>
+const title = "Welcome back";
+=======
+const title = "Hello again";
+<span class="b">&gt;&gt;&gt;&gt;&gt;&gt;&gt; search</span></pre>
+<p>Edit the file, <code>git add</code> it, then <code>git commit</code> (or <code>git rebase --continue</code>). <code>git merge --abort</code> backs out completely.</p></div>
+    <div class="concept"><h3>Fast-forward vs merge commit</h3><p>If your branch is an ancestor of the other, merging just slides your sticky note forward. No new commit is made. If both sides have new commits, Git needs a merge commit with two parents. <code>git merge --no-ff</code> forces a merge commit anyway, and <code>git pull --ff-only</code> refuses anything except a slide.</p></div>
+    <div class="concept"><h3>origin/main is a memory, not a live view</h3><p>Nothing updates on its own. <code>git status</code> saying "up to date with origin/main" only means up to date with the last fetch. <code>git fetch</code> is always safe: it downloads commits and moves <code>origin/*</code>, and never touches your branches or files.</p></div>
+    <div class="concept"><h3>Detached HEAD isn't an error</h3><p>It means HEAD points at a commit instead of a branch, which happens when you check out a hash, a tag, or stop mid-rebase. Looking around is fine. If you commit there, create a branch (<code>git switch -c name</code>) before you leave, or those commits end up unreachable.</p></div>
+    <div class="concept"><h3>.gitignore only affects untracked files</h3><p>Once a file is tracked, adding it to <code>.gitignore</code> does nothing. Stop tracking it with <code>git rm --cached file</code> and commit. The file stays on disk but leaves the repository from that commit on. Older commits still contain it, which matters for leaked secrets: rotate the secret.</p></div>
+  </div>
+</section>
+
+<section id="commands">
+  <div class="eyebrow">Field guide</div>
+  <h2>Commands worth knowing</h2>
+  <p class="lede">Each command is tagged by what it does to the picture. Filter by effect to see, for example, everything that can discard work.</p>
+  <div class="filters" id="filters"></div>
+  <div class="cmd-groups" id="cmdGroups"></div>
+</section>
+
+<footer>
+  <p><b>Practice next:</b> make an empty folder, run <code>git init</code>, and after every command run <code>git log --oneline --graph --all</code> plus <code>cat .git/HEAD</code>. Predict the picture before you look.</p>
+  <p>For more drills, <a href="https://learngitbranching.js.org" target="_blank" rel="noopener">learngitbranching.js.org</a> draws your commands live in the browser. <a href="https://git-scm.com/book/en/v2" target="_blank" rel="noopener">Pro Git</a> (free) chapters 2, 3 and 10 cover everything here in more depth.</p>
+</footer>
+</div>
+
+<script>
+(() => {
+/* ---------- model helpers ---------- */
+const S = () => ({ c:{}, refs:{}, head:{b:'main'}, gh:null, n:0 });
+const H = s => ('b' in s.head) ? s.refs[s.head.b] : s.head.c;
+const occ = (s,l,col) => Object.values(s.c).some(c => c.lane===l && c.col===col);
+function mk(s,id,msg,o={}){
+  const p = o.p || (H(s) ? [H(s)] : []);
+  const col = p.length ? Math.max(...p.map(x => s.c[x].col)) + 1 : 0;
+  let lane;
+  if (o.lane !== undefined) lane = o.lane;
+  else { const base = p.length ? s.c[p[0]].lane : 0; lane = base;
+    for (const d of [0,1,-1,2]) if (!occ(s,base+d,col)) { lane = base+d; break; } }
+  s.c[id] = { id, msg, lane, col, p, remote: !!o.remote };
+  if (!o.noMove){ if ('b' in s.head) s.refs[s.head.b] = id; else s.head.c = id; }
+  return id;
+}
+const br = (s,n,at) => { s.refs[n] = at ?? H(s); };
+const sw = (s,n) => { s.head = {b:n}; };
+const det = (s,id) => { s.head = {c:id}; };
+const mv = (s,n,id) => { s.refs[n] = id; };
+const del = (s,n) => { delete s.refs[n]; };
+function reach(s){
+  const seen = new Set(), st = [...Object.values(s.refs)]; const h = H(s); if (h) st.push(h);
+  while (st.length){ const id = st.pop(); if (!id || seen.has(id) || !s.c[id]) continue; seen.add(id); st.push(...s.c[id].p); }
+  return seen;
+}
+function pillRows(s){
+  const by = {}; const add = (id,row) => { if (!id || !s.c[id]) return; (by[id] = by[id] || []).push(row); };
+  if (!('b' in s.head)) add(s.head.c, [{k:'HEAD', t:'HEAD (detached)', cls:'detached'}]);
+  const kind = n => n.startsWith('origin/') ? 'remote' : n === 'stash' ? 'stash' : 'branch';
+  const rank = n => n === s.head.b ? 0 : ({branch:1, remote:2, stash:3})[kind(n)];
+  for (const n of Object.keys(s.refs).sort((a,b) => rank(a)-rank(b) || a.localeCompare(b))){
+    const row = [];
+    if (s.head.b === n) row.push({k:'HEAD', t:'HEAD →', cls:'head'});
+    row.push({k:'r:'+n, t: n === 'stash' ? 'stash@{0}' : n, cls: kind(n)});
+    add(s.refs[n], row);
+  }
+  if (s.gh) add(s.gh, [{k:'GH', t:'GitHub: main', cls:'gh'}]);
+  return by;
+}
+
+/* ---------- scenarios ---------- */
+const SCN = [
+ { id:'basics', name:'Commits & branches', steps:[
+  { cmd:'git init', note:`<p>An empty repository. HEAD already points at <code>main</code>, but main points at nothing yet (an "unborn" branch).</p><p>The new <code>.git</code> folder is the repository. Your files are just a working copy.</p>` },
+  { cmd:'git commit -m "first"', op:s=>mk(s,'A','first'), note:`<p>Git saves a snapshot of every tracked file as commit <b>A</b>. A has no parent; it's the root.</p><p>The <code>main</code> branch now exists and points at A. HEAD points at main.</p>` },
+  { cmd:'git commit -m "header"', op:s=>mk(s,'B','header'), note:`<p><b>B</b> stores the ID of its parent, A. The arrow points <i>backwards</i>: a child knows its parent, a parent never knows its children.</p><p>Only the branch HEAD is attached to moves forward.</p>` },
+  { cmd:'git commit -m "footer"', op:s=>mk(s,'C','footer'), note:`<p>Same again. History is a chain you can only walk backwards: C → B → A.</p>` },
+  { cmd:'git branch feature', op:s=>br(s,'feature'), note:`<p>A new sticky note on the same commit. Nothing is copied. On disk it's a tiny file, <code>.git/refs/heads/feature</code>, containing C's hash.</p><p>HEAD didn't move, so you're still on main.</p>` },
+  { cmd:'git switch feature', op:s=>sw(s,'feature'), note:`<p>Only HEAD moved. Your files don't change because both branches point at the same commit.</p><p>Older equivalent: <code>git checkout feature</code>.</p>` },
+  { cmd:'git commit -m "search box"', op:s=>mk(s,'D','search box',{lane:-1}), note:`<p>HEAD is attached to <code>feature</code>, so feature moves to <b>D</b>. main stays on C.</p>` },
+  { cmd:'git commit -m "search API"', op:s=>mk(s,'E','search API'), note:`<p>feature is now two commits ahead of main.</p>` },
+  { cmd:'git switch main', op:s=>sw(s,'main'), note:`<p>HEAD moves back to main, and Git rewrites your files to match C's snapshot. D and E's changes disappear from disk.</p><p>They aren't lost. They're stored in commits D and E, which feature still points to.</p>` },
+  { cmd:'git commit -m "fix typo"', op:s=>mk(s,'F','fix typo',{lane:0}), note:`<p>Now history has forked. Both branches share A, B and C, then go separate ways. This is what <b>diverged</b> means, and it's where merge and rebase come in.</p>` },
+ ]},
+ { id:'merge', name:'Merge', setup:s=>{mk(s,'A','init');mk(s,'B','readme');}, steps:[
+  { cmd:'git log --oneline --graph', note:`<p>Starting point: main has two commits and HEAD is on main.</p>` },
+  { cmd:'git switch -c login', op:s=>{br(s,'login');sw(s,'login');}, note:`<p><code>-c</code> creates the branch and switches to it in one step.</p>` },
+  { cmd:'git commit -m "login form"', op:s=>mk(s,'C','login form'), note:`<p>login moves to C. main is still on B.</p>` },
+  { cmd:'git switch main', op:s=>sw(s,'main'), note:`<p>Back on main to bring the login work in.</p>` },
+  { cmd:'git merge login', op:s=>mv(s,'main','C'), out:['Updating b2c..c3d','Fast-forward'], note:`<p><b>Fast-forward.</b> main is an ancestor of login, so there's nothing to combine. Git slides main forward to C. No new commit is created.</p>` },
+  { cmd:'git switch -c search', op:s=>{br(s,'search');sw(s,'search');} },
+  { cmd:'git commit -m "search box"', op:s=>mk(s,'D','search box',{lane:-1}), note:`<p>Work on search…</p>` },
+  { cmd:'git switch main', op:s=>sw(s,'main') },
+  { cmd:'git commit -m "fix typo"', op:s=>mk(s,'E','fix typo',{lane:0}), note:`<p>…while main also gets a new commit. The branches have diverged, so a fast-forward is no longer possible.</p>` },
+  { cmd:'git merge search', op:s=>mk(s,'M','merge search',{p:['E','D'],lane:0}), out:["Merge made by the 'ort' strategy."], note:`<p>Git finds the <b>merge base</b> (C, the last commit both share), combines the changes C→E and C→D, and records the result as <b>M</b>, a commit with <i>two parents</i>.</p><p>If both sides changed the same lines, Git stops and asks you to resolve a conflict first.</p>` },
+  { cmd:'git branch -d search', op:s=>del(s,'search'), note:`<p>Deleting a branch deletes only the sticky note. D stays in history because M points to it.</p>` },
+ ]},
+ { id:'rebase', name:'Rebase', setup:s=>{mk(s,'A','init');mk(s,'B','readme');br(s,'feature');sw(s,'feature');mk(s,'C','search box',{lane:-1});mk(s,'D','search API');sw(s,'main');mk(s,'E','fix typo',{lane:0});sw(s,'feature');}, steps:[
+  { cmd:'git log --oneline --graph --all', note:`<p>feature and main have diverged at B. You're on feature. Instead of a merge commit, you want feature to look as if it started from E.</p>` },
+  { cmd:'git rebase main', op:s=>{mk(s,'C′','search box',{p:['E'],lane:0});mk(s,'D′','search API',{lane:0});}, out:['Successfully rebased and updated refs/heads/feature.'], note:`<p>Git replays the changes from C and D one at a time on top of E.</p><p>A commit's parent is part of its identity, so the replayed commits are <b>new commits</b>, C′ and D′, with new hashes. The originals are now unreachable (faded). The reflog still has them for a while.</p>` },
+  { cmd:'git switch main', op:s=>sw(s,'main') },
+  { cmd:'git merge feature', op:s=>mv(s,'main','D′'), out:['Fast-forward'], note:`<p>A fast-forward, so history is one straight line with no merge commit.</p><p><b>Golden rule:</b> only rebase commits nobody else has. If you rebase commits you already pushed, teammates still have the old C and D.</p>` },
+ ]},
+ { id:'reset', name:'Reset & reflog', setup:s=>{mk(s,'A','init');mk(s,'B','header');mk(s,'C','footer');mk(s,'D','typo');}, steps:[
+  { cmd:'git log --oneline', areas:['clean','clean','D'], note:`<p>Four commits and nothing uncommitted. Watch the three boxes under the graph too. Reset's flag decides which of them get touched.</p>` },
+  { cmd:'git reset --soft HEAD~1', op:s=>mv(s,'main','C'), areas:["has D's changes","D's changes, staged",'C'], note:`<p><code>HEAD~1</code> means "one parent back". <code>--soft</code> moves only the branch.</p><p>D's changes stay staged, as if you had just run <code>git add</code>. Use it for "undo my last commit but keep the work ready to recommit".</p>` },
+  { cmd:'git reset HEAD~1', op:s=>mv(s,'main','B'), areas:['has C + D changes','matches B','B'], note:`<p>No flag means <code>--mixed</code>. It moves the branch and resets the staging area, but leaves your files alone. The changes from C and D are still in your files, just unstaged.</p>` },
+  { cmd:'git reset --hard HEAD~1', op:s=>mv(s,'main','A'), areas:['matches A','matches A','A'], note:`<p><code>--hard</code> moves the branch and overwrites staging <i>and your files</i> to match A. Uncommitted edits would be gone for good.</p><p>B, C and D look lost. They aren't.</p>` },
+  { cmd:'git reflog', areas:['matches A','matches A','A'], out:['a1f0e2c HEAD@{0}: reset: moving to HEAD~1','b7d91aa HEAD@{1}: reset: moving to HEAD~1','c3e4f5d HEAD@{2}: reset: moving to HEAD~1','d9a8b7c HEAD@{3}: commit: typo'], note:`<p>The reflog is a local diary of every commit HEAD has pointed at. <code>HEAD@{3}</code> is commit D, from before the resets.</p>` },
+  { cmd:'git reset --hard d9a8b7c', op:s=>mv(s,'main','D'), areas:['clean','clean','D'], note:`<p>Point main back at D and everything is reachable again. Anything you <i>committed</i> can almost always be recovered this way.</p>` },
+ ]},
+ { id:'detached', name:'Detached HEAD', setup:s=>{mk(s,'A','init');mk(s,'B','header');mk(s,'C','footer');}, steps:[
+  { cmd:'git log --oneline', note:`<p>Three commits on main.</p>` },
+  { cmd:'git switch --detach B', op:s=>det(s,'B'), out:["HEAD is now at b2c header"], note:`<p>HEAD now points straight at a commit instead of a branch. That's <b>detached HEAD</b>. Your files match B, which is handy for looking at old code.</p><p>Older form: <code>git checkout B</code>.</p>` },
+  { cmd:'git commit -m "experiment"', op:s=>mk(s,'X','experiment'), note:`<p>Committing works, but there's no branch to move. Only HEAD knows where X is.</p>` },
+  { cmd:'git switch main', op:s=>sw(s,'main'), out:['Warning: you are leaving 1 commit behind,','not connected to any of your branches:','  9f8e7d experiment'], note:`<p>HEAD goes back to main. Nothing points at X now, so it's unreachable. Git warns you and prints X's hash.</p>` },
+  { cmd:'git branch rescue 9f8e7d', op:s=>br(s,'rescue','X'), note:`<p>Give X a branch and it's safe. This is the standard fix for "I lost commits in detached HEAD": find the hash in <code>git reflog</code>, then make a branch there.</p>` },
+ ]},
+ { id:'pick', name:'Cherry-pick & revert', setup:s=>{mk(s,'A','init');mk(s,'B','readme');br(s,'experiment');sw(s,'experiment');mk(s,'C','try cache',{lane:-1});mk(s,'D','fix login');sw(s,'main');mk(s,'E','release',{lane:0});}, steps:[
+  { cmd:'git log --oneline --graph --all', note:`<p>You want only the login fix (D) on main, not the cache experiment (C).</p>` },
+  { cmd:'git cherry-pick D', op:s=>mk(s,'D′','fix login',{lane:0}), note:`<p>Git copies the changes D introduced into a new commit <b>D′</b> on top of main. D stays where it was. Same change, different parent, so a different hash.</p>` },
+  { cmd:'git revert E', op:s=>mk(s,'R','revert E'), note:`<p>Revert doesn't delete E. It adds a new commit that does the opposite of E.</p><p>History only grows, so this is the safe way to undo something that's already pushed.</p>` },
+ ]},
+ { id:'stash', name:'Stash', setup:s=>{mk(s,'A','init');mk(s,'B','header');mk(s,'C','footer');}, steps:[
+  { cmd:'# editing app.js…', areas:['app.js edited','empty','C'], note:`<p>You're halfway through a change when an urgent bug report comes in. You don't want to commit half-finished work.</p>` },
+  { cmd:'git stash', op:s=>{mk(s,'W','WIP',{p:['C'],lane:1,noMove:true});mv(s,'stash','W');}, areas:['clean','empty','C'], out:['Saved working directory and index state WIP on main'], note:`<p>Stash saves your uncommitted changes as a special commit hanging off C, labelled <code>stash@{0}</code>, then cleans your working folder. Your branch doesn't move.</p>` },
+  { cmd:'git commit -am "hotfix"', op:s=>mk(s,'D','hotfix',{lane:0}), areas:['clean','empty','D'], note:`<p>Fix the bug and commit. main moves to D as usual.</p>` },
+  { cmd:'git stash pop', op:s=>del(s,'stash'), areas:['app.js edits are back','empty','D'], note:`<p>Git re-applies the stashed changes onto your files and drops the stash entry, so the stash commit becomes unreachable.</p><p><code>git stash list</code> shows saved entries. <code>git stash apply</code> re-applies but keeps the entry.</p>` },
+ ]},
+ { id:'remote', name:'Fetch, pull, push', setup:s=>{mk(s,'A','init');mk(s,'B','readme');mv(s,'origin/main','B');s.gh='B';}, steps:[
+  { cmd:'git clone <url>', note:`<p>Cloning copies every commit. You get <code>main</code> plus <code>origin/main</code>, your repo's <i>memory</i> of where the server's main was.</p><p>The dashed tag shows where GitHub's main really is right now. Normally you can't see that.</p>` },
+  { cmd:'# a teammate pushes C', op:s=>{mk(s,'C','their fix',{p:['B'],lane:-1,remote:true,noMove:true});s.gh='C';}, note:`<p>A teammate pushes <b>C</b>. It exists only on GitHub. Your repo has no idea, and origin/main still says B.</p>` },
+  { cmd:'git commit -m "my feature"', op:s=>mk(s,'D','my feature',{lane:0}), note:`<p>Meanwhile you commit <b>D</b> locally.</p>` },
+  { cmd:'git push', out:['! [rejected]  main -> main (fetch first)'], err:true, note:`<p><b>Rejected.</b> GitHub's main is at C, and your main doesn't contain C. Accepting your push would throw C away, so Git refuses. You need to pick up C first.</p>` },
+  { cmd:'git fetch', op:s=>{s.c.C.remote=false;mv(s,'origin/main','C');}, out:['   b2c..c3d  main -> origin/main'], note:`<p><code>fetch</code> downloads new commits and moves <code>origin/main</code>. It never touches your branches or files, so it's always safe to run.</p>` },
+  { cmd:'git rebase origin/main', op:s=>mk(s,'D′','my feature',{p:['C'],lane:0}), note:`<p>Replay D on top of C. <code>git pull --rebase</code> does this step and the previous one together. Plain <code>git pull</code> does fetch + merge, which creates a merge commit instead.</p>` },
+  { cmd:'git push', op:s=>{s.gh='D′';mv(s,'origin/main','D′');}, out:['   c3d..d4e  main -> main'], note:`<p>GitHub's main can now fast-forward from C to D′. origin/main updates too, because you just talked to the server.</p>` },
+ ]},
+];
+function buildStates(sc){
+  let s = S(); sc.setup && sc.setup(s);
+  return sc.steps.map(st => { s = JSON.parse(JSON.stringify(s)); st.op && st.op(s); return s; });
+}
+
+/* ---------- graph renderer ---------- */
+const NS = 'http://www.w3.org/2000/svg';
+const R = 17, COL = 110, ROW = 110, PADX = 64, RH = 24;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function E(tag, attrs, parent){ const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+const pw = t => Math.round(t.length * 7.1 + 14);
+const ease = t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2;
+let mid = 0;
+
+class Graph {
+  constructor(svg){
+    this.svg = svg; this.mid = 'arr' + (mid++);
+    const defs = E('defs', {}, svg);
+    const m = E('marker', {id:this.mid, viewBox:'0 0 8 8', refX:'7', refY:'4', markerWidth:'7', markerHeight:'7', orient:'auto'}, defs);
+    E('path', {d:'M0 0 L8 4 L0 8 z', class:'arrowhead'}, m);
+    this.gE = E('g', {}, svg); this.gN = E('g', {}, svg); this.gL = E('g', {}, svg);
+    this.unborn = E('text', {class:'unborn', x:PADX - R, y:0}, svg);
+    this.ents = new Map(); this.raf = 0;
+  }
+  layout(states){
+    let minL = 0, maxL = 0, maxC = 0, top = 1, bot = 0;
+    for (const s of states) for (const c of Object.values(s.c)){ minL = Math.min(minL, c.lane); maxL = Math.max(maxL, c.lane); maxC = Math.max(maxC, c.col); }
+    for (const s of states){ const rows = pillRows(s);
+      for (const id in rows){ const c = s.c[id]; if (c.lane === minL && c.lane <= 0) top = Math.max(top, rows[id].length); if (c.lane === maxL && c.lane > 0) bot = Math.max(bot, rows[id].length); } }
+    this.minL = minL;
+    this.padT = R + 18 + top*RH;
+    const padB = maxL > 0 ? R + 18 + Math.max(bot,0)*RH + 6 : R + 36;
+    const W = PADX*2 + maxC*COL + 50, Ht = this.padT + (maxL-minL)*ROW + padB;
+    this.svg.setAttribute('viewBox', `0 0 ${W} ${Ht}`);
+    this.svg.style.width = W + 'px'; this.svg.style.height = Ht + 'px';
+    for (const e of this.ents.values()) e.el.remove();
+    this.ents.clear();
+    this.unborn.setAttribute('y', this.padT);
+  }
+  P(c){ return { x: PADX + c.col*COL, y: this.padT + (c.lane - this.minL)*ROW }; }
+  render(s, instant){
+    const rs = reach(s), seen = new Set();
+    // nodes
+    for (const c of Object.values(s.c)){
+      const k = 'n:'+c.id; seen.add(k);
+      const p = this.P(c), o = c.remote ? .55 : rs.has(c.id) ? 1 : .32;
+      let e = this.ents.get(k);
+      if (!e){
+        const g = E('g', {class:'g-node'}, this.gN);
+        E('circle', {r:R}, g); const t = E('text', {class:'id'}, g); t.textContent = c.id;
+        const m = E('text', {class:'msg', y: c.lane > 0 ? -(R+10) : R+18}, g); m.textContent = c.msg;
+        const ti = E('title', {}, g); ti.textContent = `commit ${c.id}: ${c.msg}`;
+        const par = c.p.length && this.ents.get('n:'+c.p[0]);
+        const st = par ? {...par.cur, o:0} : {...p, o:0};
+        e = {type:'n', el:g, cur:st}; this.ents.set(k, e);
+      }
+      e.el.classList.toggle('unreach', !c.remote && !rs.has(c.id));
+      e.el.classList.toggle('remote', c.remote);
+      e.to = {...p, o}; e.dead = false;
+    }
+    // edges
+    for (const c of Object.values(s.c)) for (const pid of c.p){
+      const k = 'e:'+c.id+'>'+pid; seen.add(k);
+      let e = this.ents.get(k);
+      if (!e){ const path = E('path', {class:'g-edge', 'marker-end':`url(#${this.mid})`}, this.gE); e = {type:'e', el:path, a:'n:'+c.id, b:'n:'+pid, cur:{o:0}}; this.ents.set(k, e); }
+      e.el.classList.toggle('remote', c.remote);
+      e.to = {o: Math.min(this.ents.get('n:'+c.id).to.o, this.ents.get('n:'+pid).to.o)}; e.dead = false;
+    }
+    // pills
+    const rows = pillRows(s);
+    for (const id in rows){
+      const c = s.c[id], p = this.P(c), below = c.lane > 0;
+      rows[id].forEach((row, i) => {
+        const tw = row.reduce((a,x) => a + pw(x.t), 0) + (row.length-1)*4;
+        let x = p.x - tw/2; const y = below ? p.y + R + 16 + i*RH : p.y - R - 16 - i*RH;
+        for (const it of row){
+          const k = 'p:'+it.k; seen.add(k); const w = pw(it.t);
+          let e = this.ents.get(k);
+          if (!e){ const g = E('g', {class:'pill'}, this.gL); E('rect', {x:0, y:-10, height:20, rx:5}, g); E('text', {y:0}, g);
+            e = {type:'p', el:g, cur:{x, y: y + (below ? 8 : -8), o:0}}; this.ents.set(k, e); }
+          e.el.setAttribute('class', 'pill ' + it.cls);
+          e.el.querySelector('rect').setAttribute('width', w);
+          const t = e.el.querySelector('text'); t.setAttribute('x', w/2); t.textContent = it.t;
+          e.to = {x, y, o:1}; e.dead = false; x += w + 4;
+        }
+      });
+    }
+    // removals
+    for (const [k,e] of this.ents) if (!seen.has(k)){ e.to = {...e.cur, o:0}; e.dead = true; }
+    // unborn
+    const unb = ('b' in s.head) && !s.refs[s.head.b];
+    this.unborn.textContent = unb ? `HEAD → ${s.head.b}  (no commits yet)` : '';
+    this.animate(instant || reduce);
+  }
+  apply(){
+    for (const e of this.ents.values()){
+      if (e.type === 'e'){
+        const a = this.ents.get(e.a), b = this.ents.get(e.b); if (!a || !b) continue;
+        const x1 = a.cur.x - R, y1 = a.cur.y, x2 = b.cur.x + R + 2, y2 = b.cur.y;
+        const mx = (x1+x2)/2;
+        e.el.setAttribute('d', Math.abs(y1-y2) < .5 ? `M${x1} ${y1} L${x2} ${y2}` : `M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}`);
+        e.el.style.opacity = e.cur.o;
+      } else {
+        e.el.setAttribute('transform', `translate(${e.cur.x.toFixed(1)} ${e.cur.y.toFixed(1)})`);
+        e.el.style.opacity = e.cur.o;
+      }
+    }
+  }
+  animate(instant){
+    cancelAnimationFrame(this.raf);
+    const from = new Map(); for (const [k,e] of this.ents) from.set(k, {...e.cur});
+    const finish = () => { for (const [k,e] of this.ents){ e.cur = {...e.to}; if (e.dead){ e.el.remove(); this.ents.delete(k); } } this.apply(); };
+    if (instant){ finish(); return; }
+    const t0 = performance.now(), D = 620;
+    const tick = now => {
+      const t = Math.min(1, (now - t0)/D), k = ease(t);
+      for (const [key,e] of this.ents){ const f = from.get(key);
+        for (const p in e.to) e.cur[p] = f[p] + (e.to[p] - f[p]) * k; }
+      this.apply();
+      if (t < 1) this.raf = requestAnimationFrame(tick); else finish();
+    };
+    this.raf = requestAnimationFrame(tick);
+  }
+}
+
+/* ---------- hero loop ---------- */
+const HERO = { setup:s=>{mk(s,'A','init');mk(s,'B','header');mk(s,'C','footer');}, steps:[
+  {cmd:'git log --oneline --graph'},
+  {cmd:'git switch -c feature', op:s=>{br(s,'feature');sw(s,'feature');}},
+  {cmd:'git commit -m "search"', op:s=>mk(s,'D','search',{lane:-1})},
+  {cmd:'git commit -m "results"', op:s=>mk(s,'E','results')},
+  {cmd:'git switch main', op:s=>sw(s,'main')},
+  {cmd:'git commit -m "typo"', op:s=>mk(s,'F','typo',{lane:0})},
+  {cmd:'git merge feature', op:s=>mk(s,'M','merge',{p:['F','E'],lane:0})},
+]};
+const heroG = new Graph(document.getElementById('heroSvg'));
+const heroStates = buildStates(HERO); heroG.layout(heroStates);
+let hi = 0; const heroCmd = document.getElementById('heroCmd');
+const heroShow = inst => { heroG.render(heroStates[hi], inst); heroCmd.innerHTML = '<b>$</b> ' + esc(HERO.steps[hi].cmd); };
+function esc(t){ return t.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[c]); }
+heroShow(true);
+if (!reduce) setInterval(() => { if (document.hidden) return; hi = (hi + 1) % heroStates.length; heroShow(false); }, 1900);
+
+/* ---------- playground ---------- */
+const g = new Graph(document.getElementById('graphSvg'));
+const tabs = document.getElementById('tabs'), term = document.getElementById('term'), note = document.getElementById('note');
+const prevB = document.getElementById('prev'), nextB = document.getElementById('next'), autoB = document.getElementById('auto'), count = document.getElementById('count');
+const areasEl = document.getElementById('areas'), aEls = [0,1,2].map(i => document.getElementById('a'+i));
+let cur = null, states = [], idx = 0, timer = null;
+SCN.forEach((sc, i) => {
+  const b = document.createElement('button'); b.type = 'button'; b.setAttribute('role','tab'); b.id = 'tab-'+sc.id; b.textContent = sc.name;
+  b.addEventListener('click', () => load(i)); tabs.appendChild(b);
+});
+function load(i){
+  stopAuto(); cur = SCN[i]; states = buildStates(cur); g.layout(states); idx = 0;
+  [...tabs.children].forEach((b,j) => b.setAttribute('aria-selected', j === i));
+  show(true);
+}
+function show(instant){
+  const st = cur.steps[idx];
+  g.render(states[idx], instant);
+  term.innerHTML = cur.steps.slice(0, idx+1).map((x,j) => {
+    const line = `<div class="ln${j===idx?' cur':''}"><span class="p">$</span> ${esc(x.cmd)}</div>`;
+    const out = x.out ? `<div class="out${x.err?' err':''}">${x.out.map(esc).join('\n')}</div>` : '';
+    return line + out;
+  }).join('');
+  term.scrollTop = term.scrollHeight;
+  note.innerHTML = st.note || '<p style="color:var(--muted)">Watch which label moves.</p>';
+  if (st.areas){
+    areasEl.hidden = false;
+    st.areas.forEach((t,j) => { const changed = aEls[j].textContent !== t; aEls[j].textContent = t;
+      if (changed && !instant){ const p = aEls[j].parentElement; p.classList.remove('flash'); void p.offsetWidth; p.classList.add('flash'); } });
+  } else areasEl.hidden = true;
+  prevB.disabled = idx === 0; nextB.disabled = idx === cur.steps.length - 1;
+  count.textContent = `${idx+1} / ${cur.steps.length}`;
+}
+const go = d => { const n = idx + d; if (n < 0 || n >= cur.steps.length) return false; idx = n; show(false); return true; };
+prevB.addEventListener('click', () => { stopAuto(); go(-1); });
+nextB.addEventListener('click', () => { stopAuto(); go(1); });
+function stopAuto(){ clearInterval(timer); timer = null; autoB.textContent = 'Play'; }
+autoB.addEventListener('click', () => {
+  if (timer) return stopAuto();
+  if (idx === cur.steps.length - 1){ idx = 0; show(false); }
+  autoB.textContent = 'Pause';
+  timer = setInterval(() => { if (!go(1)) stopAuto(); }, 2600);
+});
+document.addEventListener('keydown', e => {
+  if (/INPUT|TEXTAREA/.test(e.target.tagName)) return;
+  const r = document.getElementById('play').getBoundingClientRect();
+  if (r.bottom < 0 || r.top > innerHeight) return;
+  if (e.key === 'ArrowRight'){ stopAuto(); go(1); } else if (e.key === 'ArrowLeft'){ stopAuto(); go(-1); }
+});
+load(0);
+
+/* ---------- three areas ---------- */
+const A = { wd:1, idx:1, repo:1, commits:['c1'] };
+const fWd = document.getElementById('fWd'), fIdx = document.getElementById('fIdx'), fRepo = document.getElementById('fRepo');
+const [bEdit,bAdd,bCommit,bUnstage,bRestore,bReset] = ['bEdit','bAdd','bCommit','bUnstage','bRestore','bReset'].map(i => document.getElementById(i));
+function arrive(el){ if (reduce) return; el.classList.remove('arrive'); void el.offsetWidth; el.classList.add('arrive'); }
+function drawAreas(){
+  fWd.querySelector('.ver').textContent = 'v'+A.wd; fIdx.querySelector('.ver').textContent = 'v'+A.idx; fRepo.querySelector('.ver').textContent = 'v'+A.repo;
+  fWd.classList.toggle('diff', A.wd !== A.idx); fIdx.classList.toggle('diff', A.idx !== A.repo);
+  document.getElementById('hist').textContent = 'commits: ' + [...A.commits].reverse().join(' ← ') + '  (HEAD = ' + A.commits[A.commits.length-1] + ')';
+  bAdd.disabled = A.wd === A.idx; bCommit.disabled = A.idx === A.repo; bUnstage.disabled = A.idx === A.repo; bRestore.disabled = A.wd === A.idx;
+  let o = '<span class="d">$ git status</span>\nOn branch main\n';
+  if (A.idx !== A.repo) o += 'Changes to be committed:\n        <span class="g">modified:   app.js</span>\n';
+  if (A.wd !== A.idx) o += 'Changes not staged for commit:\n        <span class="r">modified:   app.js</span>\n';
+  if (A.wd === A.idx && A.idx === A.repo) o += 'nothing to commit, working tree clean\n';
+  if (A.idx !== A.repo && A.wd !== A.idx) o += '<span class="d">\n(app.js is in both lists: you staged v' + A.idx + ', then kept editing to v' + A.wd + '.)</span>';
+  document.getElementById('statusOut').innerHTML = o.trimEnd();
+}
+bEdit.onclick = () => { A.wd = Math.max(A.wd, A.idx, A.repo) + 1; arrive(fWd); drawAreas(); };
+bAdd.onclick = () => { A.idx = A.wd; arrive(fIdx); drawAreas(); };
+bCommit.onclick = () => { A.repo = A.idx; A.commits.push('c' + (A.commits.length+1)); arrive(fRepo); drawAreas(); };
+bUnstage.onclick = () => { A.idx = A.repo; arrive(fIdx); drawAreas(); };
+bRestore.onclick = () => { A.wd = A.idx; arrive(fWd); drawAreas(); };
+bReset.onclick = () => { Object.assign(A, {wd:1, idx:1, repo:1, commits:['c1']}); drawAreas(); };
+drawAreas();
+
+/* ---------- hash demo ---------- */
+const hIn = document.getElementById('hashIn'), hNl = document.getElementById('hashNl'), hOut = document.getElementById('hashOut');
+async function rehash(){
+  const text = hIn.value + (hNl.checked ? '\n' : '');
+  try {
+    const enc = new TextEncoder(), body = enc.encode(text), head = enc.encode(`blob ${body.length}\0`);
+    const all = new Uint8Array(head.length + body.length); all.set(head); all.set(body, head.length);
+    const d = await crypto.subtle.digest('SHA-1', all);
+    const hex = [...new Uint8Array(d)].map(b => b.toString(16).padStart(2,'0')).join('');
+    hOut.innerHTML = `blob ${body.length}\\0 + contents\n→ <span class="h">${hex}</span>`.replace('\n','<br>');
+  } catch { hOut.textContent = 'This browser blocked the hashing API, so the hash cannot be shown here.'; }
+}
+hIn.addEventListener('input', rehash); hNl.addEventListener('change', rehash); rehash();
+
+/* ---------- commands ---------- */
+const EFF = { read:'Only looks', stage:'Changes staging', commit:'Adds commits', pointer:'Moves a pointer', rewrite:'Replaces commits', files:'Changes your files', remote:'Talks to a server' };
+const CMDS = [
+ ['Look around', [
+  ['git status', "What's changed, what's staged, which branch you're on.", ['read']],
+  ['git log --oneline --graph --all', 'Draws the commit graph for every branch. Worth an alias: git config --global alias.lg "log --oneline --graph --all".', ['read']],
+  ['git diff', "Changes in your files that aren't staged yet.", ['read']],
+  ['git diff --staged', 'Exactly what the next commit will contain.', ['read']],
+  ['git show <commit>', "One commit's message and changes.", ['read']],
+  ['git blame <file>', 'Who last changed each line, and in which commit.', ['read']],
+  ['git branch -vv', 'Your branches, their latest commit, and which remote branch each one tracks.', ['read']],
+  ['git reflog', 'Everywhere HEAD has been. Your safety net for undoing mistakes.', ['read']],
+ ]],
+ ['Save work', [
+  ['git add -p', 'Stage changes piece by piece, so each commit holds one idea.', ['stage']],
+  ['git commit -m "message"', 'Snapshot the staging area as a new commit and move your branch to it.', ['commit','pointer']],
+  ['git commit --amend', 'Replace the last commit, e.g. to fix its message or add a forgotten file.', ['rewrite']],
+  ['git stash  /  git stash pop', 'Shelve uncommitted changes, then bring them back later.', ['files']],
+  ['git stash list', "See what's on the shelf.", ['read']],
+ ]],
+ ['Branch & combine', [
+  ['git switch -c <name>', 'Create a branch at the current commit and move HEAD to it.', ['pointer']],
+  ['git switch <name>', 'Move HEAD to another branch. Your files update to match.', ['pointer','files']],
+  ['git branch -d <name>', 'Delete a branch label. Refuses if its commits are unmerged; -D forces it.', ['pointer']],
+  ['git merge <branch>', 'Bring another branch in: a fast-forward or a two-parent merge commit.', ['commit','pointer']],
+  ['git rebase <branch>', 'Replay your commits on top of another branch for a straight history.', ['rewrite']],
+  ['git rebase -i HEAD~3', 'Squash, reorder or reword your last 3 commits before sharing them.', ['rewrite']],
+  ['git cherry-pick <commit>', 'Copy one commit onto your current branch.', ['commit']],
+  ['git tag -a v1.0 -m "release"', "A permanent label for a release. Tags don't move.", ['pointer']],
+ ]],
+ ['Undo & fix', [
+  ['git restore <file>', 'Throw away uncommitted edits in a file. This cannot be undone.', ['files']],
+  ['git restore --staged <file>', 'Unstage a file but keep your edits.', ['stage']],
+  ['git reset --soft HEAD~1', 'Undo the last commit and keep its changes staged.', ['pointer']],
+  ['git reset HEAD~1', 'Undo the last commit and keep its changes unstaged.', ['pointer','stage']],
+  ['git reset --hard <commit>', 'Move the branch and overwrite your files. Uncommitted work is lost.', ['pointer','files']],
+  ['git revert <commit>', 'Add a new commit that undoes an old one. Safe on shared branches.', ['commit']],
+  ['git clean -n  then  git clean -fd', 'Preview, then delete untracked files and folders.', ['files']],
+ ]],
+ ['Work with remotes', [
+  ['git clone <url>', 'Copy a whole repository, every commit included.', ['remote']],
+  ['git fetch', 'Download new commits and update origin/*. Never touches your work.', ['remote']],
+  ['git pull --rebase', 'Fetch, then replay your local commits on top of what arrived.', ['remote','rewrite']],
+  ['git push -u origin <branch>', 'First push of a new branch. -u remembers the pairing for later pushes and pulls.', ['remote']],
+  ['git push --force-with-lease', 'Overwrite the remote branch after a rebase, but only if nobody pushed in the meantime.', ['remote','rewrite']],
+  ['git remote -v', 'Which servers this repository knows about.', ['read']],
+ ]],
+ ['Good to know they exist', [
+  ['git bisect start / good / bad', 'Binary-search history to find the commit that broke something.', ['read']],
+  ['git log -S "someText"', 'Find the commits that added or removed a piece of text.', ['read']],
+  ['git log --author="name" --since="2 weeks"', 'Filter history by person or date.', ['read']],
+  ['git worktree add ../hotfix main', 'A second working folder on another branch, sharing the same repository.', ['files']],
+  ['git shortlog -sn', 'Commit counts per author.', ['read']],
+ ]],
+];
+const filt = new Set();
+const fEl = document.getElementById('filters'), gEl = document.getElementById('cmdGroups');
+for (const k in EFF){
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.setAttribute('aria-pressed','false');
+  b.innerHTML = `<i class="sw e-${k}"></i>${EFF[k]}`;
+  b.onclick = () => { filt.has(k) ? filt.delete(k) : filt.add(k); b.setAttribute('aria-pressed', filt.has(k)); drawCmds(); };
+  fEl.appendChild(b);
+}
+function drawCmds(){
+  gEl.innerHTML = '';
+  for (const [name, rows] of CMDS){
+    const vis = rows.filter(r => !filt.size || r[2].some(e => filt.has(e)));
+    if (!vis.length) continue;
+    const d = document.createElement('div'); d.className = 'cmd-group';
+    d.innerHTML = `<h3>${name}</h3>` + vis.map(([c,w,e]) => `<div class="cmd-row"><code>${esc(c)}</code><div class="what">${esc(w)}</div><div class="effs">${e.map(x => `<span class="eff e-${x}">${EFF[x]}</span>`).join('')}</div></div>`).join('');
+    gEl.appendChild(d);
+  }
+}
+drawCmds();
+})();
+</script>
+</body>
+</html>
