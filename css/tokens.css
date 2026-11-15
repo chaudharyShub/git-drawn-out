@@ -1,0 +1,27 @@
+/* Git, Drawn Out — design tokens: colors (light + dark), fonts, selection. Shared by every page. */
+:root{
+  --bg:#F2F4F8; --surface:#FFFFFF; --surface2:#E7EBF2; --ink:#151A28; --muted:#586078; --line:#D2D8E3;
+  --branch:#1E66C8; --head:#BF1A5A; --remote:#23824A; --stash:#9A6200; --danger:#C9430B; --violet:#6B3FC4;
+  --node:#151A28; --nodefill:#FFFFFF; --pilltext:#FFFFFF;
+  --term-bg:#171C2A; --term-fg:#DDE2EC; --term-dim:#7C859C; --term-prompt:#7FB0FF;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F121A; --surface:#171B26; --surface2:#20263480; --ink:#E5E9F1; --muted:#98A1B6; --line:#2C3445;
+  --branch:#5EA4FF; --head:#FF5E9C; --remote:#4FCB76; --stash:#E8AE3E; --danger:#FF8B4E; --violet:#A98BFF;
+  --node:#E5E9F1; --nodefill:#171B26; --pilltext:#0F121A;
+  --term-bg:#0A0C12; --term-fg:#DDE2EC; --term-dim:#6D7790; --term-prompt:#7FB0FF; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0F121A; --surface:#171B26; --surface2:#20263480; --ink:#E5E9F1; --muted:#98A1B6; --line:#2C3445;
+  --branch:#5EA4FF; --head:#FF5E9C; --remote:#4FCB76; --stash:#E8AE3E; --danger:#FF8B4E; --violet:#A98BFF;
+  --node:#E5E9F1; --nodefill:#171B26; --pilltext:#0F121A;
+  --term-bg:#0A0C12; --term-fg:#DDE2EC; --term-dim:#6D7790; --term-prompt:#7FB0FF; color-scheme:dark }
+
+*{box-sizing:border-box}
+/* Text selection uses the pink HEAD accent, tinted so the text keeps its own color and stays readable */
+::selection{background:rgba(255,94,156,.32)}
+@supports (background:color-mix(in srgb, red 50%, transparent)){
+  ::selection{background:color-mix(in srgb, var(--head) 32%, transparent)}
+}

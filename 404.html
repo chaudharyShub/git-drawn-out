@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#BF1A5A">
+<title>Page not found · Git, Drawn Out</title>
+<link rel="icon" href="/assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/icons/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/css/tokens.css">
+<link rel="stylesheet" href="/css/404.css">
+</head>
+<body>
+<main>
+  <div class="eyebrow">Error 404</div>
+  <h1>Detached <span>HEAD</span>.</h1>
+  <p>This URL isn't on any branch. The page you're looking for doesn't exist, or it moved.</p>
+
+  <svg viewBox="0 0 520 150" role="img" aria-label="HEAD pointing at a commit that is not on the main branch">
+    <path d="M30 100 H300" stroke="var(--branch)" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M210 100 C250 100 250 40 300 40 H400" stroke="var(--line)" stroke-width="4" stroke-dasharray="2 9" fill="none" stroke-linecap="round"/>
+    <g fill="var(--nodefill)" stroke="var(--node)" stroke-width="3.5">
+      <circle cx="30" cy="100" r="12"/><circle cx="120" cy="100" r="12"/><circle cx="210" cy="100" r="12"/><circle cx="300" cy="100" r="12"/>
+    </g>
+    <circle cx="400" cy="40" r="12" fill="none" stroke="var(--head)" stroke-width="3.5" stroke-dasharray="5 5"/>
+    <text x="400" y="45" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--head)">?</text>
+    <g font-family="IBM Plex Mono, monospace" font-size="13" font-weight="500">
+      <rect x="264" y="118" width="72" height="26" rx="13" fill="var(--branch)"/><text x="300" y="135" text-anchor="middle" fill="var(--nodefill)">main</text>
+      <rect x="440" y="27" width="70" height="26" rx="13" fill="var(--head)"/><text x="475" y="44" text-anchor="middle" fill="var(--nodefill)">HEAD</text>
+      <path d="M440 40 H414" stroke="var(--head)" stroke-width="2.5"/>
+    </g>
+  </svg>
+
+  <div class="term" aria-label="Terminal hint">
+    <div><span class="p">$</span> git status</div>
+    <div class="d">HEAD detached at 404</div>
+    <div><span class="p">$</span> git switch main</div>
+  </div>
+
+  <a class="btn" href="/">git switch main →</a>
+</main>
+</body>
+</html>
